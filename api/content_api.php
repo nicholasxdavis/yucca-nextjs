@@ -164,7 +164,8 @@ elseif ($method === 'POST') {
         } catch (Exception $e) {
             http_response_code(500);
             error_log("Create content error: " . $e->getMessage());
-            echo json_encode(['error' => 'Failed to create content']);
+            error_log("Stack trace: " . $e->getTraceAsString());
+            echo json_encode(['error' => 'Failed to create content: ' . $e->getMessage()]);
         }
         $conn->close();
     }

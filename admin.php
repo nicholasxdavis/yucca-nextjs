@@ -741,7 +741,7 @@ try {
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <h1><i class="fas fa-paw"></i> Yucca Club</h1>
+                <h1><img src="ui/img/favicon.png" alt="Yucca Club" style="width: 24px; height: 24px; margin-right: 8px; vertical-align: middle;"> Yucca Club</h1>
                 <p>Admin Dashboard</p>
             </div>
 
@@ -804,6 +804,10 @@ try {
 
             <nav class="nav-section">
                 <div class="nav-section-title">Tools</div>
+                <div class="nav-item" onclick="checkDatabase()">
+                    <i class="fas fa-database"></i>
+                    <span>Check Database</span>
+                </div>
                 <div class="nav-item" onclick="showSection('testing')">
                     <i class="fas fa-flask"></i>
                     <span>Testing</span>
@@ -1839,36 +1843,32 @@ try {
             // window.open('test_connection.php', '_blank'); // removed test page
         }
 
-        async function testAPIs() {
-            const resultsDiv = document.getElementById('test-results');
-            resultsDiv.innerHTML = '<p>Testing APIs...</p>';
-            
+        async function checkDatabase() {
             try {
-                const tests = [
-                    { name: 'Content API', url: 'api/content_api.php?type=stories&action=list', credentials: true },
-                    { name: 'Contacts API', url: 'api/contacts_api.php' }
-                ];
+                const response = await fetch('api/db_check.php', {
+                    credentials: 'same-origin'
+                });
+                const data = await response.json();
                 
+                const resultsDiv = document.getElementById('test-results');
                 let html = '<div style="background: #F5F1E9; padding: 1rem; border-radius: 8px;">';
-                html += '<h3 style="margin-bottom: 1rem;">API Test Results</h3>';
+                html += '<h3 style="margin-bottom: 1rem;">Database Check Results</h3>';
                 
-                for (const test of tests) {
-                    try {
-                        const options = { method: 'GET' };
-                        if (test.credentials) {
-                            options.credentials = 'same-origin';
-                        }
-                        const response = await fetch(test.url, options);
-                        html += `<p style="color: green; margin: 0.5rem 0;">✓ ${test.name}</p>`;
-                    } catch (error) {
-                        html += `<p style="color: red; margin: 0.5rem 0;">✗ ${test.name}</p>`;
+                if (data.success) {
+                    for (const [table, exists] of Object.entries(data.tables)) {
+                        html += `<div style="margin-bottom: 0.5rem; padding: 0.5rem; background: ${exists ? '#d4edda' : '#f8d7da'}; border-radius: 4px;">`;
+                        html += `<strong>${table}:</strong> ${exists ? '✅ Exists' : '❌ Missing'}`;
+                        html += '</div>';
                     }
+                } else {
+                    html += `<div style="color: red;">Error: ${data.error}</div>`;
                 }
                 
                 html += '</div>';
                 resultsDiv.innerHTML = html;
             } catch (error) {
-                resultsDiv.innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+                const resultsDiv = document.getElementById('test-results');
+                resultsDiv.innerHTML = '<p style="color: red;">Database check failed: ' + error.message + '</p>';
             }
         }
 
