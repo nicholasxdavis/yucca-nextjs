@@ -23,10 +23,10 @@ if ($method === 'GET') {
         $maintenance_file = __DIR__ . '/../.maintenance';
         $is_enabled = file_exists($maintenance_file);
         
-        echo json_encode(['enabled' => $is_enabled]);
+        echo json_encode(['success' => true, 'enabled' => $is_enabled]);
     } catch (Exception $e) {
         error_log("Maintenance API error: " . $e->getMessage());
-        echo json_encode(['enabled' => false]);
+        echo json_encode(['success' => false, 'enabled' => false, 'error' => $e->getMessage()]);
     }
 }
 

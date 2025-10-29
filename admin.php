@@ -804,13 +804,9 @@ try {
 
             <nav class="nav-section">
                 <div class="nav-section-title">Tools</div>
-                <div class="nav-item" onclick="checkDatabase()">
-                    <i class="fas fa-database"></i>
-                    <span>Check Database</span>
-                </div>
-                <div class="nav-item" onclick="showSection('testing')">
+                <div class="nav-item" onclick="testAPIs()">
                     <i class="fas fa-flask"></i>
-                    <span>Testing</span>
+                    <span>Test APIs</span>
                 </div>
                 <div class="nav-item" onclick="showSection('maintenance')">
                     <i class="fas fa-tools"></i>
@@ -1263,6 +1259,9 @@ try {
                     </select>
                 </div>
 
+                <!-- Validation Status -->
+                <div id="validation-status"></div>
+
                 <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                     <button type="submit" class="btn btn-primary">Save</button>
                     <button type="button" class="btn btn-secondary" onclick="closeEditor()">Cancel</button>
@@ -1530,6 +1529,15 @@ try {
                     document.getElementById('rich-builder').style.display = 'none';
                     document.getElementById('builder-status').textContent = 'Rich builder: off';
                 }
+                
+                // Setup slug generation
+                setupSlugGeneration();
+                
+                // Setup real-time validation
+                setupRealTimeValidation();
+                
+                // Show initial validation
+                setTimeout(showValidationResults, 100);
             } catch (error) {
                 alert('Error opening editor: ' + error.message);
             }
@@ -1722,6 +1730,13 @@ try {
         document.getElementById('editor-form').onsubmit = async (e) => {
             e.preventDefault();
             
+            // Validate content before submission
+            const validation = validateContent();
+            if (validation.errors.length > 0) {
+                showNotification('Please fix the following errors before saving:\n\n' + validation.errors.join('\n'), 'error', 8000);
+                return;
+            }
+            
             try {
                 const formData = new FormData(e.target);
                 const type = document.getElementById('content-type').value;
@@ -1740,15 +1755,20 @@ try {
                 
                 const data = await response.json();
                 if (data.success) {
-                    alert(`${action === 'create' ? 'Created' : 'Updated'} successfully!`);
+                    showNotification(`${action === 'create' ? 'Created' : 'Updated'} successfully!`, 'success');
                     closeEditor();
                     loadStories();
                     loadGuides();
                 } else {
-                    alert('Error: ' + (data.error || 'Failed to save'));
+                    if (data.error && data.error.includes('Slug already exists')) {
+                        showNotification('This slug is already in use. Please choose a different slug.', 'error', 5000);
+                        document.getElementById('content-slug').focus();
+                    } else {
+                        showNotification('Error: ' + (data.error || 'Failed to save'), 'error');
+                    }
                 }
             } catch (error) {
-                alert('Error: ' + error.message);
+                showNotification('Error: ' + error.message, 'error');
             }
         };
 
@@ -1843,32 +1863,46 @@ try {
             // window.open('test_connection.php', '_blank'); // removed test page
         }
 
-        async function checkDatabase() {
+        async function testAPIs() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<p>Testing APIs...</p>';
+            
             try {
-                const response = await fetch('api/db_check.php', {
-                    credentials: 'same-origin'
-                });
-                const data = await response.json();
+                const tests = [
+                    { name: 'Content API', url: 'api/content_api.php?type=stories&action=list', credentials: true },
+                    { name: 'Contacts API', url: 'api/contacts_api.php', credentials: true },
+                    { name: 'User Posts API', url: 'api/user_posts_api.php?action=list', credentials: true }
+                ];
                 
-                const resultsDiv = document.getElementById('test-results');
                 let html = '<div style="background: #F5F1E9; padding: 1rem; border-radius: 8px;">';
-                html += '<h3 style="margin-bottom: 1rem;">Database Check Results</h3>';
+                html += '<h3 style="margin-bottom: 1rem;">API Test Results</h3>';
                 
-                if (data.success) {
-                    for (const [table, exists] of Object.entries(data.tables)) {
-                        html += `<div style="margin-bottom: 0.5rem; padding: 0.5rem; background: ${exists ? '#d4edda' : '#f8d7da'}; border-radius: 4px;">`;
-                        html += `<strong>${table}:</strong> ${exists ? '✅ Exists' : '❌ Missing'}`;
+                for (const test of tests) {
+                    try {
+                        const options = { method: 'GET' };
+                        if (test.credentials) {
+                            options.credentials = 'same-origin';
+                        }
+                        const response = await fetch(test.url, options);
+                        const data = await response.json();
+                        
+                        html += `<div style="margin-bottom: 0.5rem; padding: 0.5rem; background: ${response.ok ? '#d4edda' : '#f8d7da'}; border-radius: 4px;">`;
+                        html += `<strong>${test.name}:</strong> ${response.ok ? '✅ OK' : '❌ Error'} (${response.status})`;
+                        if (!response.ok && data.error) {
+                            html += ` - ${data.error}`;
+                        }
+                        html += '</div>';
+                    } catch (error) {
+                        html += `<div style="margin-bottom: 0.5rem; padding: 0.5rem; background: #f8d7da; border-radius: 4px;">`;
+                        html += `<strong>${test.name}:</strong> ❌ Network Error - ${error.message}`;
                         html += '</div>';
                     }
-                } else {
-                    html += `<div style="color: red;">Error: ${data.error}</div>`;
                 }
                 
                 html += '</div>';
                 resultsDiv.innerHTML = html;
             } catch (error) {
-                const resultsDiv = document.getElementById('test-results');
-                resultsDiv.innerHTML = '<p style="color: red;">Database check failed: ' + error.message + '</p>';
+                resultsDiv.innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
             }
         }
 
@@ -1895,18 +1929,30 @@ try {
 
         async function loadMaintenanceStatus() {
             try {
-                const response = await fetch('.maintenance');
-                const isActive = response.ok;
+                const response = await fetch('api/maintenance.php', {
+                    credentials: 'same-origin'
+                });
+                const data = await response.json();
                 
                 const statusDiv = document.getElementById('maintenance-status');
+                const isActive = data.success ? data.enabled : false;
+                
                 statusDiv.innerHTML = `
                     <div style="padding: 1rem; background: ${isActive ? '#ffebee' : '#e8f5e9'}; border-radius: 8px; border: 1px solid ${isActive ? '#c62828' : '#388e3c'};">
                         <p style="font-weight: 600; margin-bottom: 0.5rem;">Status: <span style="color: ${isActive ? '#c62828' : '#388e3c'};">${isActive ? 'ACTIVE' : 'INACTIVE'}</span></p>
                         <p style="font-size: 0.875rem; opacity: 0.8;">${isActive ? 'The site is currently in maintenance mode.' : 'The site is publicly accessible.'}</p>
+                        ${!data.success ? `<p style="color: red; font-size: 0.875rem;"><strong>Error:</strong> ${data.error}</p>` : ''}
                     </div>
                 `;
             } catch (error) {
                 console.error('Error loading maintenance status:', error);
+                const statusDiv = document.getElementById('maintenance-status');
+                statusDiv.innerHTML = `
+                    <div style="padding: 1rem; background: #ffebee; border-radius: 8px; border: 1px solid #c62828;">
+                        <p style="font-weight: 600; margin-bottom: 0.5rem; color: #c62828;">Error Loading Status</p>
+                        <p style="font-size: 0.875rem; opacity: 0.8;">Failed to load maintenance status</p>
+                    </div>
+                `;
             }
         }
 
@@ -1917,6 +1963,351 @@ try {
                 const v = c == 'x' ? r : (r & 0x3 | 0x8);
                 return v.toString(16);
             });
+        }
+        
+        // Generate slug from title
+        function generateSlugFromTitle(title) {
+            return title
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+                .replace(/\s+/g, '-') // Replace spaces with hyphens
+                .replace(/-+/g, '-') // Replace multiple hyphens with single
+                .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+        }
+        
+        // Drag and drop functionality for blocks
+        function setupDragAndDrop() {
+            const container = document.getElementById('blocks-container');
+            if (!container) return;
+            
+            // Make container sortable
+            container.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            });
+            
+            container.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const draggedId = e.dataTransfer.getData('text/plain');
+                const dropTarget = e.target.closest('.block-item');
+                
+                if (dropTarget && draggedId) {
+                    const draggedIndex = blocks.findIndex(block => block.id === draggedId);
+                    const dropIndex = blocks.findIndex(block => block.id === dropTarget.dataset.blockId);
+                    
+                    if (draggedIndex !== -1 && dropIndex !== -1 && draggedIndex !== dropIndex) {
+                        // Move block in array
+                        const draggedBlock = blocks.splice(draggedIndex, 1)[0];
+                        blocks.splice(dropIndex, 0, draggedBlock);
+                        
+                        // Re-render blocks
+                        renderBlocks();
+                    }
+                }
+            });
+        }
+        
+        // Enhanced block actions
+        function addBlockActions(blockElement, blockId) {
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'block-actions';
+            actionsDiv.style.cssText = `
+                position: absolute;
+                top: 0.5rem;
+                right: 0.5rem;
+                display: flex;
+                gap: 0.25rem;
+                opacity: 0;
+                transition: opacity 0.2s;
+            `;
+            
+            // Duplicate button
+            const duplicateBtn = document.createElement('button');
+            duplicateBtn.innerHTML = '<i class="fas fa-copy"></i>';
+            duplicateBtn.title = 'Duplicate Block';
+            duplicateBtn.className = 'btn btn-sm btn-outline';
+            duplicateBtn.style.cssText = 'padding: 0.25rem; width: 2rem; height: 2rem;';
+            duplicateBtn.onclick = () => duplicateBlock(blockId);
+            
+            // Delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.title = 'Delete Block';
+            deleteBtn.className = 'btn btn-sm btn-outline';
+            deleteBtn.style.cssText = 'padding: 0.25rem; width: 2rem; height: 2rem; color: #dc3545;';
+            deleteBtn.onclick = () => deleteBlock(blockId);
+            
+            // Drag handle
+            const dragHandle = document.createElement('div');
+            dragHandle.innerHTML = '<i class="fas fa-grip-vertical"></i>';
+            dragHandle.title = 'Drag to Reorder';
+            dragHandle.style.cssText = `
+                padding: 0.25rem;
+                width: 2rem;
+                height: 2rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: move;
+                color: #6c757d;
+            `;
+            dragHandle.draggable = true;
+            dragHandle.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', blockId);
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            
+            actionsDiv.appendChild(duplicateBtn);
+            actionsDiv.appendChild(deleteBtn);
+            actionsDiv.appendChild(dragHandle);
+            
+            blockElement.appendChild(actionsDiv);
+            
+            // Show actions on hover
+            blockElement.addEventListener('mouseenter', () => {
+                actionsDiv.style.opacity = '1';
+            });
+            
+            blockElement.addEventListener('mouseleave', () => {
+                actionsDiv.style.opacity = '0';
+            });
+        }
+        
+        // Duplicate block function
+        function duplicateBlock(blockId) {
+            const blockIndex = blocks.findIndex(block => block.id === blockId);
+            if (blockIndex !== -1) {
+                const originalBlock = blocks[blockIndex];
+                const duplicatedBlock = {
+                    ...originalBlock,
+                    id: generateUUID()
+                };
+                
+                blocks.splice(blockIndex + 1, 0, duplicatedBlock);
+                renderBlocks();
+            }
+        }
+        
+        // Delete block function
+        function deleteBlock(blockId) {
+            if (confirm('Are you sure you want to delete this block?')) {
+                blocks = blocks.filter(block => block.id !== blockId);
+                renderBlocks();
+            }
+        }
+        
+        // Move block function
+        function moveBlock(blockId, direction) {
+            const index = blocks.findIndex(block => block.id === blockId);
+            if (index === -1) return;
+            
+            if (direction === 'up' && index > 0) {
+                [blocks[index], blocks[index - 1]] = [blocks[index - 1], blocks[index]];
+                renderBlocks();
+            } else if (direction === 'down' && index < blocks.length - 1) {
+                [blocks[index], blocks[index + 1]] = [blocks[index + 1], blocks[index]];
+                renderBlocks();
+            }
+        }
+        
+        // Remove block function (alias for deleteBlock)
+        function removeBlock(blockId) {
+            deleteBlock(blockId);
+        }
+        
+        // Content validation system
+        function validateContent() {
+            const errors = [];
+            const warnings = [];
+            
+            // Validate title
+            const title = document.getElementById('content-title').value.trim();
+            if (!title) {
+                errors.push('Title is required');
+            } else if (title.length < 3) {
+                warnings.push('Title is very short (less than 3 characters)');
+            } else if (title.length > 255) {
+                errors.push('Title is too long (maximum 255 characters)');
+            }
+            
+            // Validate slug
+            const slug = document.getElementById('content-slug').value.trim();
+            if (!slug) {
+                errors.push('Slug is required');
+            } else if (!/^[a-z0-9-]+$/.test(slug)) {
+                errors.push('Slug can only contain lowercase letters, numbers, and hyphens');
+            } else if (slug.length > 255) {
+                errors.push('Slug is too long (maximum 255 characters)');
+            }
+            
+            // Validate excerpt
+            const excerpt = document.getElementById('content-excerpt').value.trim();
+            if (excerpt && excerpt.length > 500) {
+                warnings.push('Excerpt is quite long (over 500 characters)');
+            }
+            
+            // Validate content blocks
+            if (builderEnabled && blocks.length === 0) {
+                warnings.push('No content blocks added yet');
+            }
+            
+            // Check for empty blocks
+            blocks.forEach((block, index) => {
+                if (block.type === 'heading' || block.type === 'subheading') {
+                    if (!block.data.text || block.data.text.trim() === '') {
+                        warnings.push(`Block ${index + 1} (${block.type}) is empty`);
+                    }
+                } else if (block.type === 'paragraph') {
+                    if (!block.data.text || block.data.text.trim() === '') {
+                        warnings.push(`Block ${index + 1} (paragraph) is empty`);
+                    }
+                } else if (block.type === 'image') {
+                    if (!block.data.url || block.data.url.trim() === '') {
+                        warnings.push(`Block ${index + 1} (image) has no URL`);
+                    }
+                }
+            });
+            
+            return { errors, warnings };
+        }
+        
+        // Show validation results
+        function showValidationResults() {
+            const validation = validateContent();
+            const statusDiv = document.getElementById('validation-status');
+            
+            if (!statusDiv) return;
+            
+            let html = '<div style="margin-top: 1rem; padding: 1rem; border-radius: 8px;">';
+            
+            if (validation.errors.length === 0 && validation.warnings.length === 0) {
+                html += '<div style="background: #d4edda; color: #155724; padding: 0.5rem; border-radius: 4px;">';
+                html += '<i class="fas fa-check-circle"></i> Content validation passed';
+                html += '</div>';
+            } else {
+                if (validation.errors.length > 0) {
+                    html += '<div style="background: #f8d7da; color: #721c24; padding: 0.5rem; border-radius: 4px; margin-bottom: 0.5rem;">';
+                    html += '<strong><i class="fas fa-exclamation-triangle"></i> Errors:</strong><ul style="margin: 0.5rem 0 0 1rem;">';
+                    validation.errors.forEach(error => {
+                        html += `<li>${error}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+                
+                if (validation.warnings.length > 0) {
+                    html += '<div style="background: #fff3cd; color: #856404; padding: 0.5rem; border-radius: 4px;">';
+                    html += '<strong><i class="fas fa-info-circle"></i> Warnings:</strong><ul style="margin: 0.5rem 0 0 1rem;">';
+                    validation.warnings.forEach(warning => {
+                        html += `<li>${warning}</li>`;
+                    });
+                    html += '</ul></div>';
+                }
+            }
+            
+            html += '</div>';
+            statusDiv.innerHTML = html;
+        }
+        
+        // Real-time validation
+        function setupRealTimeValidation() {
+            const titleField = document.getElementById('content-title');
+            const slugField = document.getElementById('content-slug');
+            const excerptField = document.getElementById('content-excerpt');
+            
+            if (titleField) {
+                titleField.addEventListener('input', showValidationResults);
+            }
+            if (slugField) {
+                slugField.addEventListener('input', showValidationResults);
+            }
+            if (excerptField) {
+                excerptField.addEventListener('input', showValidationResults);
+            }
+        }
+        
+        // Enhanced loading states
+        function showLoading(elementId, message = 'Loading...') {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; padding: 2rem;">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                            <div style="width: 2rem; height: 2rem; border: 3px solid #f3f3f3; border-top: 3px solid #007bff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                            <p style="margin: 0; color: #6c757d;">${message}</p>
+                        </div>
+                    </div>
+                    <style>
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    </style>
+                `;
+            }
+        }
+        
+        // Enhanced success/error notifications
+        function showNotification(message, type = 'success', duration = 3000) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            `;
+            
+            if (type === 'success') {
+                notification.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+            } else if (type === 'error') {
+                notification.style.background = 'linear-gradient(135deg, #dc3545, #e74c3c)';
+            } else if (type === 'warning') {
+                notification.style.background = 'linear-gradient(135deg, #ffc107, #fd7e14)';
+            } else {
+                notification.style.background = 'linear-gradient(135deg, #007bff, #6f42c1)';
+            }
+            
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Auto remove
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, duration);
+        }
+        
+        // Enhanced button states
+        function setButtonLoading(button, loading = true) {
+            if (loading) {
+                button.dataset.originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+                button.disabled = true;
+            } else {
+                button.innerHTML = button.dataset.originalText || button.innerHTML;
+                button.disabled = false;
+            }
         }
 
         function toggleBuilder() {
@@ -2560,7 +2951,12 @@ try {
             
             // Also populate the form fields
             document.getElementById('content-title').value = 'Welcome to Yucca Club';
-            document.getElementById('content-slug').value = 'welcome-to-yucca-club';
+            
+            // Generate unique slug with timestamp
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '-');
+            const uniqueSlug = `welcome-to-yucca-club-${timestamp}`;
+            document.getElementById('content-slug').value = uniqueSlug;
+            
             document.getElementById('content-category').value = 'Yucca-Club';
             document.getElementById('content-image').value = 'https://www.blacnova.net/ui/img/hero.png';
             document.getElementById('content-excerpt').value = 'Yucca Club was built to tell the stories that live here. From Las Cruces to El Paso, Alamogordo, Cloudcroft, Silver City, Ruidoso, Juárez, Tucson, Phoenix, Hatch, Deming, Mesilla, and everywhere in between.';
@@ -2635,6 +3031,7 @@ try {
                 const actions = document.createElement('div');
                 actions.className = 'block-actions';
                 actions.innerHTML = `
+                    <button type="button" onclick="duplicateBlock('${block.id}')" class="btn btn-secondary btn-sm" title="Duplicate Block"><i class="fas fa-copy"></i></button>
                     <button type="button" onclick="moveBlock('${block.id}', 'up')" class="btn btn-secondary btn-sm" ${index === 0 ? 'disabled' : ''} title="Move Up">↑</button>
                     <button type="button" onclick="moveBlock('${block.id}', 'down')" class="btn btn-secondary btn-sm" ${index === blocks.length - 1 ? 'disabled' : ''} title="Move Down">↓</button>
                     <button type="button" onclick="removeBlock('${block.id}')" class="btn btn-danger btn-sm" title="Delete Block">×</button>

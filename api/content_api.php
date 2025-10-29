@@ -154,7 +154,7 @@ elseif ($method === 'POST') {
             } else {
                 if ($conn->errno == 1062) {
                     http_response_code(409);
-                    echo json_encode(['error' => 'Slug already exists']);
+                    echo json_encode(['error' => 'Slug already exists. Please choose a different slug.']);
                 } else {
                     throw new Exception($stmt->error);
                 }
