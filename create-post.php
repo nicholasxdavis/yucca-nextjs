@@ -28,161 +28,303 @@ $page_title = "Create Community Post - Yucca Club";
     <link rel="stylesheet" href="ui/css/styles.css">
     <link rel="stylesheet" href="ui/css/enhancements.css">
     <style>
+        /* Enhanced Create Post Styles */
         .post-editor-wrapper {
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem 1rem;
         }
+        
         .post-editor-card {
             background: var(--off-white);
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
         }
+        
         .editor-header {
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid var(--desert-sand);
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 3px solid var(--desert-sand);
+            text-align: center;
         }
+        
         .editor-header h1 {
-            margin-bottom: 0.5rem;
-            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--yucca-yellow), #8a8c15);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
+        
         .editor-header p {
-            opacity: 0.7;
-            font-size: 0.95rem;
+            opacity: 0.8;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
         }
+        
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 2rem;
         }
+        
         .form-label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 700;
-            color: var(--lobo-gray);
-        }
-        .form-input, .form-select, .form-textarea {
-            width: 100%;
-            padding: 0.75rem;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-family: inherit;
-            transition: border-color 0.3s;
-            background: white;
-        }
-        .form-input:focus, .form-select:focus, .form-textarea:focus {
-            outline: none;
-            border-color: var(--yucca-yellow);
-        }
-        .form-textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-        .content-section {
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            transition: box-shadow 0.3s;
-        }
-        .content-section:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
             margin-bottom: 0.75rem;
             font-weight: 700;
             color: var(--lobo-gray);
+            font-size: 1.1rem;
         }
+        
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--yucca-yellow);
+            box-shadow: 0 0 0 3px rgba(184,186,32,0.1);
+            transform: translateY(-1px);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .content-section {
+            background: white;
+            border: 2px solid #f0f0f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .content-section:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: var(--yucca-yellow);
+            transform: translateY(-2px);
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            color: var(--lobo-gray);
+            font-size: 1.1rem;
+        }
+        
         .section-actions {
             display: flex;
-            gap: 0.5rem;
-            margin-top: 1rem;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
             flex-wrap: wrap;
         }
+        
         .btn-section {
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1.25rem;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 0.875rem;
-            transition: all 0.3s;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            text-decoration: none;
         }
+        
         .btn-primary {
-            background: var(--yucca-yellow);
+            background: linear-gradient(135deg, var(--yucca-yellow), #8a8c15);
             color: white;
+            box-shadow: 0 4px 15px rgba(184,186,32,0.3);
         }
+        
         .btn-primary:hover {
-            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(184,186,32,0.4);
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: var(--lobo-gray);
+            border: 2px solid #e9ecef;
+        }
+        
+        .btn-secondary:hover {
+            background: #e9ecef;
             transform: translateY(-1px);
         }
-        .btn-secondary {
-            background: #e0e0e0;
-            color: var(--lobo-gray);
-        }
-        .btn-secondary:hover {
-            background: #d0d0d0;
-        }
+        
         .btn-danger {
-            background: #dc3545;
+            background: linear-gradient(135deg, #dc3545, #c82333);
             color: white;
+            box-shadow: 0 4px 15px rgba(220,53,69,0.3);
         }
+        
         .btn-danger:hover {
-            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220,53,69,0.4);
         }
+        
         .content-preview {
-            border: 1px dashed #ddd;
-            border-radius: 6px;
-            padding: 0.75rem;
-            margin-top: 0.75rem;
-            background: #f9f9f9;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            background: #fafafa;
+            transition: all 0.3s ease;
         }
+        
+        .content-preview:hover {
+            border-color: var(--yucca-yellow);
+            background: #f8f9fa;
+        }
+        
         .image-placeholder {
             width: 100%;
             height: 200px;
             border: 2px dashed var(--yucca-yellow);
-            border-radius: 6px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             background: rgba(184,186,32,0.05);
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            flex-direction: column;
+            gap: 0.5rem;
         }
+        
         .image-placeholder:hover {
             border-color: var(--yucca-yellow);
             background: rgba(184,186,32,0.1);
+            transform: scale(1.02);
         }
+        
         .editor-toolbar {
             display: flex;
-            gap: 0.5rem;
+            gap: 1rem;
             flex-wrap: wrap;
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background: #f5f5f5;
-            border-radius: 8px;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
         }
+        
         .submit-section {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 2px solid var(--desert-sand);
+            margin-top: 3rem;
+            padding-top: 2.5rem;
+            border-top: 3px solid var(--desert-sand);
+            text-align: center;
         }
+        
         .cancel-link {
             display: block;
             text-align: center;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
             color: var(--lobo-gray);
             text-decoration: none;
-            transition: color 0.3s;
+            transition: all 0.3s ease;
+            font-weight: 600;
         }
+        
         .cancel-link:hover {
             color: var(--yucca-yellow);
+            transform: translateY(-1px);
+        }
+        
+        /* Enhanced Profile Container */
+        .profile-container {
+            background: linear-gradient(135deg, var(--off-white), #f8f9fa);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--yucca-yellow), #8a8c15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            font-weight: 700;
+            box-shadow: 0 8px 25px rgba(184,186,32,0.3);
+        }
+        
+        .profile-info h2 {
+            margin-bottom: 0.5rem;
+            color: var(--lobo-gray);
+            font-size: 1.5rem;
+        }
+        
+        .profile-info p {
+            opacity: 0.8;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            border: 2px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: var(--yucca-yellow);
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--yucca-yellow);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            font-weight: 600;
         }
         
         /* Mobile Responsive */
@@ -190,23 +332,65 @@ $page_title = "Create Community Post - Yucca Club";
             .post-editor-wrapper {
                 padding: 1rem 0.5rem;
             }
+            
             .post-editor-card {
                 padding: 1.5rem 1rem;
-                border-radius: 8px;
+                border-radius: 12px;
             }
+            
             .editor-header h1 {
-                font-size: 1.5rem;
+                font-size: 2rem;
             }
+            
             .editor-toolbar {
-                gap: 0.25rem;
+                gap: 0.5rem;
+                padding: 1rem;
             }
+            
             .btn-section {
-                font-size: 0.8rem;
-                padding: 0.4rem 0.8rem;
+                font-size: 0.85rem;
+                padding: 0.6rem 1rem;
             }
+            
             .section-actions {
-                gap: 0.25rem;
+                gap: 0.5rem;
             }
+            
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+            
+            .profile-stats {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+        }
+        
+        /* Loading States */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid var(--yucca-yellow);
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -373,9 +557,41 @@ $page_title = "Create Community Post - Yucca Club";
     <button id="back-to-top" aria-label="Back to top"><i class="fas fa-arrow-up" aria-hidden="true"></i></button>
     
     <script>
+        // Enhanced Create Post JavaScript
         let sectionCounter = 0;
         const contentSections = document.getElementById('content-sections');
         
+        // Add character counters
+        function addCharacterCounters() {
+            const titleInput = document.getElementById('post-title');
+            const introTextarea = document.getElementById('post-intro');
+            
+            // Title counter
+            const titleCounter = document.createElement('div');
+            titleCounter.className = 'char-counter';
+            titleCounter.style.cssText = 'font-size: 0.85rem; color: #666; margin-top: 0.25rem; text-align: right;';
+            titleInput.parentNode.appendChild(titleCounter);
+            
+            titleInput.addEventListener('input', () => {
+                const count = titleInput.value.length;
+                titleCounter.textContent = `${count}/100 characters`;
+                titleCounter.style.color = count > 100 ? '#dc3545' : '#666';
+            });
+            
+            // Intro counter
+            const introCounter = document.createElement('div');
+            introCounter.className = 'char-counter';
+            introCounter.style.cssText = 'font-size: 0.85rem; color: #666; margin-top: 0.25rem; text-align: right;';
+            introTextarea.parentNode.appendChild(introCounter);
+            
+            introTextarea.addEventListener('input', () => {
+                const count = introTextarea.value.length;
+                introCounter.textContent = `${count}/500 characters`;
+                introCounter.style.color = count > 500 ? '#dc3545' : '#666';
+            });
+        }
+        
+        // Enhanced section creation with better UX
         function createSection(type, data = {}) {
             const section = document.createElement('div');
             section.className = 'content-section';
@@ -389,8 +605,10 @@ $page_title = "Create Community Post - Yucca Club";
                         <div class="section-header">
                             <i class="fas fa-paragraph"></i>
                             <span>Text Paragraph</span>
+                            <div class="section-counter" style="margin-left: auto; font-size: 0.8rem; opacity: 0.7;">Section ${sectionCounter}</div>
                         </div>
-                        <textarea class="section-content form-textarea" rows="5" placeholder="Write your paragraph here...">${data.text || ''}</textarea>
+                        <textarea class="section-content form-textarea" rows="6" placeholder="Write your paragraph here... Share your story, thoughts, or insights with the community.">${data.text || ''}</textarea>
+                        <div class="char-counter" style="font-size: 0.85rem; color: #666; margin-top: 0.25rem; text-align: right;"></div>
                     `;
                     break;
                 case 'image':
@@ -398,32 +616,24 @@ $page_title = "Create Community Post - Yucca Club";
                         <div class="section-header">
                             <i class="fas fa-image"></i>
                             <span>Image</span>
+                            <div class="section-counter" style="margin-left: auto; font-size: 0.8rem; opacity: 0.7;">Section ${sectionCounter}</div>
                         </div>
-                        <input type="url" class="section-image-url form-input" placeholder="Image URL (e.g., https://example.com/image.jpg)" value="${data.url || ''}" style="margin-bottom: 0.5rem;">
-                        <input type="text" class="section-image-alt form-input" placeholder="Alt text for accessibility (optional)" value="${data.alt || ''}">
+                        <input type="url" class="section-image-url form-input" placeholder="https://example.com/your-image.jpg" value="${data.url || ''}" style="margin-bottom: 0.75rem;">
+                        <input type="text" class="section-image-alt form-input" placeholder="Describe your image for accessibility (e.g., 'Sunset over Organ Mountains')" value="${data.alt || ''}">
                         <div class="content-preview">
-                            ${data.url ? `<img src="${data.url}" alt="${data.alt || ''}" style="max-width: 100%; height: auto; border-radius: 4px;">` : '<div class="image-placeholder"><i class="fas fa-image" style="font-size: 3rem; opacity: 0.3;"></i></div>'}
+                            ${data.url ? `<img src="${data.url}" alt="${data.alt || ''}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">` : '<div class="image-placeholder"><i class="fas fa-image" style="font-size: 3rem; opacity: 0.3;"></i><p style="margin: 0; opacity: 0.6;">Add an image URL above to preview</p></div>'}
                         </div>
                     `;
-                    // Update preview on URL change
-                    setTimeout(() => {
-                        section.querySelector('.section-image-url')?.addEventListener('input', function(e) {
-                            const preview = section.querySelector('.content-preview');
-                            if (e.target.value) {
-                                preview.innerHTML = `<img src="${e.target.value}" alt="" style="max-width: 100%; height: auto; border-radius: 4px;">`;
-                            } else {
-                                preview.innerHTML = '<div class="image-placeholder"><i class="fas fa-image" style="font-size: 3rem; opacity: 0.3;"></i></div>';
-                            }
-                        });
-                    }, 0);
                     break;
                 case 'heading':
                     html = `
                         <div class="section-header">
                             <i class="fas fa-heading"></i>
                             <span>Heading</span>
+                            <div class="section-counter" style="margin-left: auto; font-size: 0.8rem; opacity: 0.7;">Section ${sectionCounter}</div>
                         </div>
-                        <input type="text" class="section-content form-input" placeholder="Enter heading text..." value="${data.text || ''}">
+                        <input type="text" class="section-content form-input" placeholder="Enter a compelling heading..." value="${data.text || ''}">
+                        <div class="char-counter" style="font-size: 0.85rem; color: #666; margin-top: 0.25rem; text-align: right;"></div>
                     `;
                     break;
                 case 'list':
@@ -431,49 +641,101 @@ $page_title = "Create Community Post - Yucca Club";
                         <div class="section-header">
                             <i class="fas fa-list"></i>
                             <span>List</span>
+                            <div class="section-counter" style="margin-left: auto; font-size: 0.8rem; opacity: 0.7;">Section ${sectionCounter}</div>
                         </div>
-                        <textarea class="section-content form-textarea" rows="5" placeholder="Enter list items, one per line...">${data.items || ''}</textarea>
+                        <textarea class="section-content form-textarea" rows="6" placeholder="Enter list items, one per line...&#10;&#10;Example:&#10;• First item&#10;• Second item&#10;• Third item">${data.items || ''}</textarea>
+                        <div class="char-counter" style="font-size: 0.85rem; color: #666; margin-top: 0.25rem; text-align: right;"></div>
                     `;
                     break;
             }
             
             html += `
                 <div class="section-actions">
-                    <button type="button" class="move-up btn-section btn-secondary">
-                        <i class="fas fa-arrow-up"></i> Up
+                    <button type="button" class="move-up btn-section btn-secondary" title="Move section up">
+                        <i class="fas fa-arrow-up"></i> Move Up
                     </button>
-                    <button type="button" class="move-down btn-section btn-secondary">
-                        <i class="fas fa-arrow-down"></i> Down
+                    <button type="button" class="move-down btn-section btn-secondary" title="Move section down">
+                        <i class="fas fa-arrow-down"></i> Move Down
                     </button>
-                    <button type="button" class="delete-section btn-section btn-danger">
+                    <button type="button" class="duplicate-section btn-section btn-secondary" title="Duplicate this section">
+                        <i class="fas fa-copy"></i> Duplicate
+                    </button>
+                    <button type="button" class="delete-section btn-section btn-danger" title="Delete this section">
                         <i class="fas fa-trash"></i> Delete
                     </button>
                 </div>
             `;
             
             section.innerHTML = html;
+            
+            // Add character counters for text areas
+            setTimeout(() => {
+                const textarea = section.querySelector('.section-content');
+                const counter = section.querySelector('.char-counter');
+                if (textarea && counter) {
+                    textarea.addEventListener('input', () => {
+                        const count = textarea.value.length;
+                        counter.textContent = `${count} characters`;
+                        counter.style.color = count > 1000 ? '#dc3545' : '#666';
+                    });
+                }
+                
+                // Image preview functionality
+                const imageUrlInput = section.querySelector('.section-image-url');
+                if (imageUrlInput) {
+                    imageUrlInput.addEventListener('input', function(e) {
+                        const preview = section.querySelector('.content-preview');
+                        const altInput = section.querySelector('.section-image-alt');
+                        if (e.target.value) {
+                            preview.innerHTML = `<img src="${e.target.value}" alt="${altInput.value || ''}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">`;
+                        } else {
+                            preview.innerHTML = '<div class="image-placeholder"><i class="fas fa-image" style="font-size: 3rem; opacity: 0.3;"></i><p style="margin: 0; opacity: 0.6;">Add an image URL above to preview</p></div>';
+                        }
+                    });
+                }
+            }, 0);
+            
             return section;
         }
         
+        // Enhanced event listeners
         document.getElementById('add-paragraph').addEventListener('click', () => {
             contentSections.appendChild(createSection('paragraph'));
+            showToast('📝 Text section added! Start writing your story.', 'success');
         });
         
         document.getElementById('add-image').addEventListener('click', () => {
             contentSections.appendChild(createSection('image'));
+            showToast('🖼️ Image section added! Add an image URL to preview.', 'success');
         });
         
         document.getElementById('add-heading').addEventListener('click', () => {
             contentSections.appendChild(createSection('heading'));
+            showToast('📋 Heading section added! Add a compelling title.', 'success');
         });
         
         document.getElementById('add-list').addEventListener('click', () => {
             contentSections.appendChild(createSection('list'));
+            showToast('📝 List section added! Add your items one per line.', 'success');
         });
         
+        // Enhanced section management
         contentSections.addEventListener('click', (e) => {
             if (e.target.closest('.delete-section')) {
-                e.target.closest('.content-section').remove();
+                const section = e.target.closest('.content-section');
+                if (confirm('Are you sure you want to delete this section? This action cannot be undone.')) {
+                    section.style.animation = 'fadeOut 0.3s ease';
+                    setTimeout(() => section.remove(), 300);
+                    showToast('🗑️ Section deleted', 'info');
+                }
+            }
+            
+            if (e.target.closest('.duplicate-section')) {
+                const section = e.target.closest('.content-section');
+                const newSection = section.cloneNode(true);
+                newSection.dataset.index = sectionCounter++;
+                contentSections.insertBefore(newSection, section.nextSibling);
+                showToast('📋 Section duplicated', 'success');
             }
             
             if (e.target.closest('.move-up')) {
@@ -481,6 +743,7 @@ $page_title = "Create Community Post - Yucca Club";
                 const prev = section.previousElementSibling;
                 if (prev) {
                     section.parentNode.insertBefore(section, prev);
+                    showToast('⬆️ Section moved up', 'info');
                 }
             }
             
@@ -489,10 +752,12 @@ $page_title = "Create Community Post - Yucca Club";
                 const next = section.nextElementSibling;
                 if (next) {
                     section.parentNode.insertBefore(next, section);
+                    showToast('⬇️ Section moved down', 'info');
                 }
             }
         });
         
+        // Enhanced form submission with better validation
         document.getElementById('post-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -501,21 +766,41 @@ $page_title = "Create Community Post - Yucca Club";
             const featuredImage = document.getElementById('featured-image').value.trim();
             const intro = document.getElementById('post-intro').value.trim();
             
-            // Validation
+            // Enhanced validation
+            const errors = [];
+            
             if (!title) {
-                showToast('Please enter a title for your post', 'error');
-                document.getElementById('post-title').focus();
-                return;
+                errors.push('Please enter a title for your post');
+            } else if (title.length < 5) {
+                errors.push('Title must be at least 5 characters long');
+            } else if (title.length > 100) {
+                errors.push('Title must be less than 100 characters');
             }
             
             if (!intro) {
-                showToast('Please write an introduction for your post', 'error');
-                document.getElementById('post-intro').focus();
+                errors.push('Please write an introduction for your post');
+            } else if (intro.length < 20) {
+                errors.push('Introduction must be at least 20 characters long');
+            } else if (intro.length > 500) {
+                errors.push('Introduction must be less than 500 characters');
+            }
+            
+            if (!category) {
+                errors.push('Please select a category for your post');
+            }
+            
+            // Check if there are any content sections
+            const sections = document.querySelectorAll('.content-section');
+            if (sections.length === 0) {
+                errors.push('Please add at least one content section to your post');
+            }
+            
+            if (errors.length > 0) {
+                showToast('❌ Please fix the following issues:\n• ' + errors.join('\n• '), 'error', 8000);
                 return;
             }
             
             // Build content array from sections
-            const sections = document.querySelectorAll('.content-section');
             const contentArray = [];
             
             sections.forEach(section => {
@@ -540,11 +825,12 @@ $page_title = "Create Community Post - Yucca Club";
                 sections: contentArray
             };
             
-            // Show loading state
+            // Show enhanced loading state
             const submitBtn = e.target.querySelector('button[type="submit"]');
             const originalBtnText = submitBtn.innerHTML;
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting Post...';
+            submitBtn.classList.add('loading');
             
             try {
                 const formData = new FormData();
@@ -561,49 +847,76 @@ $page_title = "Create Community Post - Yucca Club";
                 const data = await response.json();
                 
                 if (data.success) {
-                    showToast('✓ Post submitted successfully! Redirecting...', 'success');
+                    showToast('🎉 Post submitted successfully! Redirecting to community...', 'success', 3000);
                     setTimeout(() => {
                         window.location.href = 'nav/community/index.php';
-                    }, 1500);
+                    }, 2000);
                 } else {
-                    showToast('Error: ' + (data.error || 'Failed to submit post'), 'error');
+                    showToast('❌ Error: ' + (data.error || 'Failed to submit post'), 'error', 5000);
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalBtnText;
+                    submitBtn.classList.remove('loading');
                 }
             } catch (error) {
-                showToast('Error submitting post. Please try again.', 'error');
+                showToast('❌ Error submitting post. Please check your connection and try again.', 'error', 5000);
                 console.error('Submission error:', error);
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
+                submitBtn.classList.remove('loading');
             }
         });
         
-        // Toast notification function
-        function showToast(message, type = 'info') {
+        // Enhanced toast notification function
+        function showToast(message, type = 'info', duration = 4000) {
             const toast = document.createElement('div');
             toast.className = 'toast ' + type;
-            toast.textContent = message;
+            toast.innerHTML = message.replace(/\n/g, '<br>');
             toast.style.cssText = `
                 position: fixed;
                 bottom: 2rem;
                 right: 2rem;
-                background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff'};
+                background: ${type === 'success' ? 'linear-gradient(135deg, #28a745, #20c997)' : type === 'error' ? 'linear-gradient(135deg, #dc3545, #fd7e14)' : 'linear-gradient(135deg, #007bff, #6f42c1)'};
                 color: white;
-                padding: 1rem 1.5rem;
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                padding: 1.25rem 1.75rem;
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
                 z-index: 10000;
-                animation: slideIn 0.3s ease;
+                animation: slideInRight 0.4s ease;
                 max-width: 90%;
+                font-weight: 600;
+                line-height: 1.4;
             `;
             
             document.body.appendChild(toast);
             
             setTimeout(() => {
-                toast.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
+                toast.style.animation = 'slideOutRight 0.4s ease';
+                setTimeout(() => toast.remove(), 400);
+            }, duration);
         }
+        
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; transform: scale(1); }
+                to { opacity: 0; transform: scale(0.95); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Initialize character counters when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            addCharacterCounters();
+        });
     </script>
     
     <script src="ui/js/if-then.js"></script>

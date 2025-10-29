@@ -741,7 +741,7 @@ try {
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <h1><img src="ui/img/favicon.png" alt="Yucca Club" style="width: 24px; height: 24px; margin-right: 8px; vertical-align: middle;"> Yucca Club</h1>
+                <h1><img src="ui/img/favicon.png" alt="Yucca Club" style="width: 24px; height: 24px; margin-right: 8px; vertical-align: middle;"></h1>
                 <p>Admin Dashboard</p>
             </div>
 
