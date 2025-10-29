@@ -71,7 +71,10 @@ try {
         $stmt->close();
         
     } elseif ($method === 'POST' && $action === 'create') {
-        // Check post usage limit (5 posts per month)
+        // Check if user is pro to determine post limit
+        $is_pro = is_pro();
+        $post_limit = $is_pro ? 30 : 5;
+        
         $current_month = date('Y-m');
         
         // Get or create usage record
@@ -88,9 +91,12 @@ try {
         $stmt->close();
         
         // Check limit
-        if ($post_count >= 5) {
+        if ($post_count >= $post_limit) {
+            $limit_message = $is_pro ? 
+                'You have reached your monthly limit of 30 posts. Try again next month.' :
+                'You have reached your monthly limit of 5 posts. Upgrade to Pro for 30 posts per month.';
             http_response_code(429);
-            echo json_encode(['error' => 'You have reached your monthly limit of 5 posts. Try again next month.']);
+            echo json_encode(['error' => $limit_message]);
             exit;
         }
         
@@ -154,23 +160,47 @@ try {
         $stmt->close();
         
     } elseif ($method === 'POST' && $action === 'update_status') {
-        // Update post status (admin/editor only)
-        if ($user_role !== 'admin' && $user_role !== 'editor') {
-            http_response_code(403);
-            echo json_encode(['error' => 'Forbidden']);
-            exit;
-        }
+        // Update post status
+        $input = json_decode(file_get_contents('php://input'), true);
+        $id = intval($input['id'] ?? 0);
+        $status = trim($input['status'] ?? '');
         
-        $id = intval($_POST['id'] ?? 0);
-        $status = trim($_POST['status'] ?? '');
-        
-        if (!in_array($status, ['pending', 'approved', 'rejected', 'published'])) {
+        if (!in_array($status, ['pending', 'approved', 'rejected', 'published', 'draft'])) {
             http_response_code(400);
             echo json_encode(['error' => 'Invalid status']);
             exit;
         }
         
-        $stmt = $conn->prepare("UPDATE user_posts SET status = ? WHERE id = ?");
+        // Check if user owns the post or is admin/editor
+        $stmt = $conn->prepare("SELECT user_id FROM user_posts WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Post not found']);
+            exit;
+        }
+        
+        $post = $result->fetch_assoc();
+        $stmt->close();
+        
+        // Users can only change their own posts to draft, admins/editors can change any status
+        if ($user_role !== 'admin' && $user_role !== 'editor') {
+            if ($post['user_id'] != $user_id) {
+                http_response_code(403);
+                echo json_encode(['error' => 'Forbidden']);
+                exit;
+            }
+            if ($status !== 'draft') {
+                http_response_code(403);
+                echo json_encode(['error' => 'You can only move posts to draft']);
+                exit;
+            }
+        }
+        
+        $stmt = $conn->prepare("UPDATE user_posts SET status = ?, updated_at = NOW() WHERE id = ?");
         $stmt->bind_param("si", $status, $id);
         
         if ($stmt->execute()) {
@@ -178,6 +208,46 @@ try {
         } else {
             http_response_code(500);
             echo json_encode(['error' => 'Failed to update status']);
+        }
+        
+        $stmt->close();
+        
+    } elseif ($method === 'DELETE' && $action === 'delete') {
+        // Delete post
+        $id = intval($_GET['id'] ?? 0);
+        
+        // Check if user owns the post or is admin/editor
+        $stmt = $conn->prepare("SELECT user_id FROM user_posts WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows === 0) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Post not found']);
+            exit;
+        }
+        
+        $post = $result->fetch_assoc();
+        $stmt->close();
+        
+        // Users can only delete their own posts, admins/editors can delete any
+        if ($user_role !== 'admin' && $user_role !== 'editor') {
+            if ($post['user_id'] != $user_id) {
+                http_response_code(403);
+                echo json_encode(['error' => 'Forbidden']);
+                exit;
+            }
+        }
+        
+        $stmt = $conn->prepare("DELETE FROM user_posts WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        
+        if ($stmt->execute()) {
+            echo json_encode(['success' => true]);
+        } else {
+            http_response_code(500);
+            echo json_encode(['error' => 'Failed to delete post']);
         }
         
         $stmt->close();

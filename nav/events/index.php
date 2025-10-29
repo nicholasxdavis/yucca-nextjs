@@ -80,11 +80,20 @@ $ticketmaster_api_key = TICKETMASTER_API_KEY;
                     <li><a href="https://yucca.printify.me/" target="_blank" rel="noopener noreferrer">Shop</a></li>
                     <li><a href="../community/index.php">Community</a></li>
                     <li><a href="../membership/index.php">Membership</a></li>
+                    <li><a href="../exclusive/index.php">Exclusive</a></li>
                 </ul>
             </nav>
             <div class="header-actions">
                 <?php if ($is_logged_in): ?>
                     <span class="desktop-only" style="font-size: 14px; font-weight: 700;"><?= $user_email ?></span>
+                    <?php if ($user_posts_count > 0): ?>
+                    <a href="../../my-posts.php" id="my-posts" aria-label="My posts" title="My posts" class="desktop-only" style="font-size: 14px; color: var(--yucca-yellow); margin-right: 0.5rem;">
+                        <i class="fas fa-file-alt" aria-hidden="true"></i>
+                    </a>
+                    <?php endif; ?>
+                    <a href="../../create-post.php" id="create-post" aria-label="Create post" title="Create post" class="desktop-only" style="font-size: 14px; color: var(--yucca-yellow); margin-right: 0.5rem;">
+                        <i class="fas fa-edit" aria-hidden="true"></i>
+                    </a>
                     <a href="../../index.php?logout=true" aria-label="Logout" class="desktop-only">
                         <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                     </a>

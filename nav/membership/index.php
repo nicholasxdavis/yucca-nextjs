@@ -39,11 +39,20 @@ $page_title = "Membership - Yucca Club";
                     <li><a href="https://yucca.printify.me/" target="_blank">Shop</a></li>
                     <li><a href="../community/index.php">Community</a></li>
                     <li><a href="index.php" class="active">Membership</a></li>
+                    <li><a href="../exclusive/index.php">Exclusive</a></li>
                 </ul>
             </nav>
             <div class="header-actions">
                 <?php if ($is_logged_in): ?>
                     <span class="desktop-only" style="font-size: 14px; font-weight: 700;"><?= $user_email ?></span>
+                    <?php if ($user_posts_count > 0): ?>
+                    <a href="../../my-posts.php" id="my-posts" aria-label="My posts" title="My posts" class="desktop-only" style="font-size: 14px; color: var(--yucca-yellow); margin-right: 0.5rem;">
+                        <i class="fas fa-file-alt" aria-hidden="true"></i>
+                    </a>
+                    <?php endif; ?>
+                    <a href="../../create-post.php" id="create-post" aria-label="Create post" title="Create post" class="desktop-only" style="font-size: 14px; color: var(--yucca-yellow); margin-right: 0.5rem;">
+                        <i class="fas fa-edit" aria-hidden="true"></i>
+                    </a>
                     <a href="../../index.php?logout=true" aria-label="Logout" class="desktop-only">
                         <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                     </a>
@@ -90,10 +99,16 @@ $page_title = "Membership - Yucca Club";
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
                     </svg>
                 </div>
-                <h1 class="text-5xl font-serif mb-2">Community Membership</h1>
+                <h1 class="text-5xl font-serif mb-2">Yucca Club Membership</h1>
+                <?php if (isset($_GET['upgrade']) && $_GET['upgrade'] === 'exclusive'): ?>
+                <div class="upgrade-notice" style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color: #333; padding: 1rem 2rem; border-radius: 12px; margin-bottom: 2rem; font-weight: 700; text-align: center;">
+                    <i class="fas fa-crown" style="margin-right: 0.5rem;"></i>
+                    Upgrade to Pro to access exclusive deals and premium content!
+                </div>
+                <?php endif; ?>
                 <p class="text-xl max-w-2xl mx-auto">
-                    Support independent journalism and get exclusive access to premium content, 
-                    ad-free reading, and early story previews.
+                    Join our community and unlock exclusive benefits. Free members can view all content, 
+                    while Pro members get enhanced features and exclusive access.
                 </p>
             </header>
             
@@ -101,25 +116,31 @@ $page_title = "Membership - Yucca Club";
                 <div class="pricing-card">
                     <h2>Free</h2>
                     <div class="price">$0</div>
-                    <p class="description">Access to limited content</p>
+                    <p class="description">View all content, limited posting</p>
                     <ul class="features">
+                        <li><i class="fas fa-check"></i> View all community posts</li>
+                        <li><i class="fas fa-check"></i> Read all stories & guides</li>
+                        <li><i class="fas fa-check"></i> 5 community posts per month</li>
                         <li><i class="fas fa-check"></i> Monthly newsletter</li>
-                        <li><i class="fas fa-check"></i> Public stories & guides</li>
-                        <li><i class="fas fa-check"></i> Community discussions</li>
+                        <li><i class="fas fa-times" style="color: #dc3545;"></i> Ads displayed</li>
+                        <li><i class="fas fa-times" style="color: #dc3545;"></i> No Pro badge</li>
+                        <li><i class="fas fa-times" style="color: #dc3545;"></i> No Exclusive page access</li>
                     </ul>
                 </div>
                 
                 <div class="pricing-card featured">
-                    <h2>Member</h2>
+                    <h2>Pro</h2>
                     <div class="price">$4<span>/month</span></div>
-                    <p class="description">Just $1 per week</p>
+                    <p class="description">Enhanced features & exclusive access</p>
                     <ul class="features">
+                        <li><i class="fas fa-check"></i> Everything in Free</li>
+                        <li><i class="fas fa-check"></i> Pro badge on profile</li>
+                        <li><i class="fas fa-check"></i> 30 community posts per month</li>
+                        <li><i class="fas fa-check"></i> Pro blog customizations</li>
                         <li><i class="fas fa-check"></i> Ad-free experience</li>
+                        <li><i class="fas fa-check"></i> Access to Exclusive page</li>
                         <li><i class="fas fa-check"></i> Exclusive content</li>
                         <li><i class="fas fa-check"></i> Early access to stories</li>
-                        <li><i class="fas fa-check"></i> Support local journalism</li>
-                        <li><i class="fas fa-check"></i> Member-only community</li>
-                        <li><i class="fas fa-check"></i> Monthly member newsletter</li>
                     </ul>
                     <a href="#" class="cta-button" style="opacity: 0.7; cursor: not-allowed;">Coming Soon</a>
                 </div>
@@ -129,11 +150,20 @@ $page_title = "Membership - Yucca Club";
                 <h2>Frequently Asked Questions</h2>
                 <div class="faq-item">
                     <button class="faq-question" aria-expanded="false">
-                        What do I get with membership?
+                        What do I get with Pro membership?
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="faq-answer" hidden>
-                        <p>Members get ad-free reading, exclusive stories, early access to content, and support our local journalism efforts.</p>
+                        <p>Pro members get a Pro badge, 30 community posts per month (vs 5 for free), Pro blog customizations, ad-free experience, access to the Exclusive page, exclusive content, and early access to stories.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        Can I view community posts without Pro?
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer" hidden>
+                        <p>Yes! Anyone can view all community posts for free. Pro membership is only required to create posts (5 per month for free, 30 for Pro).</p>
                     </div>
                 </div>
                 <div class="faq-item">

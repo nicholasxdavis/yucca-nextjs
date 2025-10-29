@@ -13,10 +13,12 @@ $user_role = $_SESSION['user_role'] ?? 'user';
 
 // Get user's posts
 $user_posts = [];
+$is_pro = is_pro();
+$post_limit = $is_pro ? 30 : 5;
 $post_usage = [
     'current' => 0,
-    'limit' => 5,
-    'remaining' => 5
+    'limit' => $post_limit,
+    'remaining' => $post_limit
 ];
 
 try {
@@ -42,7 +44,7 @@ try {
     
     if ($row = $result->fetch_assoc()) {
         $post_usage['current'] = $row['post_count'];
-        $post_usage['remaining'] = max(0, $post_usage['limit'] - $row['post_count']);
+        $post_usage['remaining'] = max(0, $post_limit - $row['post_count']);
     }
     
     $stmt->close();
@@ -277,6 +279,89 @@ $page_title = "My Posts - Yucca Club";
             opacity: 0.3;
         }
         
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .toast {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 1rem;
+            min-width: 300px;
+            max-width: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: slideInRight 0.3s ease-out;
+        }
+        
+        .toast-success {
+            border-left: 4px solid #28a745;
+        }
+        
+        .toast-error {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .toast-info {
+            border-left: 4px solid #007bff;
+        }
+        
+        .toast-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .toast-content i {
+            font-size: 1.2rem;
+        }
+        
+        .toast-success .toast-content i {
+            color: #28a745;
+        }
+        
+        .toast-error .toast-content i {
+            color: #dc3545;
+        }
+        
+        .toast-info .toast-content i {
+            color: #007bff;
+        }
+        
+        .toast-close {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .toast-close:hover {
+            background: #f8f9fa;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
         @media (max-width: 768px) {
             .profile-header {
                 flex-direction: column;
@@ -311,10 +396,19 @@ $page_title = "My Posts - Yucca Club";
                     <li><a href="https://yucca.printify.me/" target="_blank">Shop</a></li>
                     <li><a href="nav/community/index.php">Community</a></li>
                     <li><a href="nav/membership/index.php">Membership</a></li>
+                    <li><a href="nav/exclusive/index.php">Exclusive</a></li>
                 </ul>
             </nav>
             <div class="header-actions">
                 <span class="desktop-only" style="font-size: 14px; font-weight: 700;"><?= $user_email ?></span>
+                <?php if ($user_posts_count > 0): ?>
+                <a href="my-posts.php" id="my-posts" aria-label="My posts" title="My posts" class="desktop-only" style="font-size: 14px; color: var(--yucca-yellow); margin-right: 0.5rem;">
+                    <i class="fas fa-file-alt" aria-hidden="true"></i>
+                </a>
+                <?php endif; ?>
+                <a href="create-post.php" id="create-post" aria-label="Create post" title="Create post" class="desktop-only" style="font-size: 14px; color: var(--yucca-yellow); margin-right: 0.5rem;">
+                    <i class="fas fa-edit" aria-hidden="true"></i>
+                </a>
                 <a href="index.php?logout=true" aria-label="Logout" class="desktop-only">
                     <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                 </a>
@@ -347,7 +441,7 @@ $page_title = "My Posts - Yucca Club";
     <main>
         <div class="container">
             <!-- Hero Section -->
-            <header class="text-center py-8" style="padding: 2rem 1rem; text-align: center; background: linear-gradient(135deg, var(--desert-sand) 0%, var(--off-white) 100%); border-radius: 12px; margin-bottom: 2rem;">
+            <header class="text-center py-8" style="padding: 2rem 1rem; text-align: center; background: transparent; margin-bottom: 2rem;">
                 <div class="flex justify-center mb-4">
                     <!-- File Alt Icon -->
                     <svg xmlns="http://www.w3.org/2000/svg" 
@@ -374,7 +468,13 @@ $page_title = "My Posts - Yucca Club";
                         <h2><?= htmlspecialchars(explode('@', $user_email)[0]) ?></h2>
                         <p><?= $user_email ?></p>
                         <p style="margin-top: 0.5rem;">
-                            <span class="status-badge status-<?= $user_role ?>"><?= ucfirst($user_role) ?></span>
+                            <?php if ($is_pro): ?>
+                                <span class="status-badge" style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color: #333; font-weight: 700;">
+                                    <i class="fas fa-crown" style="margin-right: 0.25rem;"></i>Pro Member
+                                </span>
+                            <?php else: ?>
+                                <span class="status-badge status-<?= $user_role ?>"><?= ucfirst($user_role) ?></span>
+                            <?php endif; ?>
                         </p>
                     </div>
                     <?php if ($post_usage['remaining'] > 0): ?>
@@ -474,6 +574,23 @@ $page_title = "My Posts - Yucca Club";
                             </span>
                             <?php endif; ?>
                             
+                            <!-- Post Management Actions -->
+                            <?php if (in_array($post['status'], ['pending', 'rejected', 'draft'])): ?>
+                            <button class="btn btn-primary" onclick="editPost(<?= $post['id'] ?>)">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <?php endif; ?>
+                            
+                            <?php if ($post['status'] === 'published'): ?>
+                            <button class="btn btn-secondary" onclick="changeToDraft(<?= $post['id'] ?>)">
+                                <i class="fas fa-save"></i> Move to Draft
+                            </button>
+                            <?php endif; ?>
+                            
+                            <button class="btn btn-danger" onclick="deletePost(<?= $post['id'] ?>, '<?= htmlspecialchars($post['title']) ?>')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                            
                             <button class="btn btn-secondary" onclick="viewPostDetails(<?= $post['id'] ?>)">
                                 <i class="fas fa-info-circle"></i> Details
                             </button>
@@ -506,6 +623,101 @@ $page_title = "My Posts - Yucca Club";
     <button id="back-to-top" aria-label="Back to top"><i class="fas fa-arrow-up" aria-hidden="true"></i></button>
     
     <script>
+        // Toast notification function
+        function showToast(message, type = 'info', duration = 5000) {
+            const toastContainer = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-content">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Auto remove after duration
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, duration);
+        }
+        
+        // Delete post function
+        async function deletePost(postId, postTitle) {
+            if (!confirm(`Are you sure you want to delete "${postTitle}"? This action cannot be undone.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`api/user_posts_api.php?action=delete&id=${postId}`, {
+                    method: 'DELETE',
+                    credentials: 'same-origin'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Post deleted successfully!', 'success');
+                    // Reload the page to reflect changes
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast('Error deleting post: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Change post to draft function
+        async function changeToDraft(postId) {
+            if (!confirm('Are you sure you want to move this post to draft? It will no longer be visible to the public.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`api/user_posts_api.php?action=update_status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        id: postId,
+                        status: 'draft'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Post moved to draft successfully!', 'success');
+                    // Reload the page to reflect changes
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast('Error updating post: ' + (data.error || 'Unknown error'), 'error');
+                }
+            } catch (error) {
+                showToast('Error: ' + error.message, 'error');
+            }
+        }
+        
+        // Edit post function
+        function editPost(postId) {
+            // For now, redirect to create-post.php with edit parameter
+            // In the future, this could open an edit modal or redirect to an edit page
+            window.location.href = `create-post.php?edit=${postId}`;
+        }
+        
         async function viewPostDetails(postId) {
             try {
                 const response = await fetch(`api/user_posts_api.php?action=get&id=${postId}`);

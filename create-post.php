@@ -392,6 +392,165 @@ $page_title = "Create Community Post - Yucca Club";
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        /* Rich Builder Styles */
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #ddd;
+            color: #666;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .btn-outline:hover {
+            background: #f8f9fa;
+            border-color: #007bff;
+            color: #007bff;
+        }
+        
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+        }
+        
+        .blocks-container {
+            display: grid;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        
+        .block-item {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 1rem;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .block-item:hover {
+            border-color: #007bff;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+        }
+        
+        .block-item.dragging {
+            opacity: 0.5;
+            transform: rotate(2deg);
+        }
+        
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .block-type {
+            font-size: 0.8rem;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .block-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .block-actions button {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        
+        .block-actions button:hover {
+            background: #f8f9fa;
+            color: #333;
+        }
+        
+        .block-actions .btn-danger:hover {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .block-content {
+            margin-top: 0.5rem;
+        }
+        
+        .block-content input,
+        .block-content textarea {
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .block-content textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        .toolbar-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .toolbar-section h4 {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .toolbar-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .quick-actions {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e5e5;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .rich-toolbar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .toolbar-section {
+                width: 100%;
+            }
+            
+            .toolbar-buttons {
+                justify-content: flex-start;
+            }
+            
+            .quick-actions {
+                flex-direction: column;
+            }
+            
+            .quick-actions button {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -410,12 +569,16 @@ $page_title = "Create Community Post - Yucca Club";
                     <li><a href="https://yucca.printify.me/" target="_blank">Shop</a></li>
                     <li><a href="nav/community/index.php" class="active">Community</a></li>
                     <li><a href="nav/membership/index.php">Membership</a></li>
+                    <li><a href="nav/exclusive/index.php">Exclusive</a></li>
                 </ul>
             </nav>
             <div class="header-actions">
                 <span class="desktop-only" style="font-size: 14px; font-weight: 700;"><?= $user_email ?></span>
                 <a href="my-posts.php" id="my-posts" aria-label="My posts" title="My posts" class="desktop-only" style="font-size: 14px; color: var(--yucca-yellow); margin-right: 0.5rem;">
                     <i class="fas fa-file-alt" aria-hidden="true"></i>
+                </a>
+                <a href="create-post.php" id="create-post" aria-label="Create post" title="Create post" class="desktop-only" style="font-size: 14px; color: var(--yucca-yellow); margin-right: 0.5rem;">
+                    <i class="fas fa-edit" aria-hidden="true"></i>
                 </a>
                 <a href="index.php?logout=true" aria-label="Logout" class="desktop-only">
                     <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
@@ -512,6 +675,96 @@ $page_title = "Create Community Post - Yucca Club";
                 
                 <div class="form-group">
                     <label class="form-label"><i class="fas fa-plus-circle"></i> Build Your Content</label>
+                    <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 0.5rem;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="toggleBuilder()">
+                            <i class="fas fa-magic"></i> Toggle Rich Builder
+                        </button>
+                        <span id="builder-status" style="font-size: 0.9rem; opacity: 0.8; font-weight: 600;">
+                            Rich builder: off
+                        </span>
+                        <button type="button" id="load-template-btn" class="btn btn-primary btn-sm" onclick="loadTemplate()" style="display: none;">
+                            <i class="fas fa-file-import"></i> Load Template
+                        </button>
+                    </div>
+                    
+                    <!-- Rich Builder -->
+                    <div id="rich-builder" style="display: none; background: #F5F1E9; border: 2px solid #ede9df; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                        <!-- Toolbar -->
+                        <div class="rich-toolbar" style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; padding: 1rem; background: white; border-radius: 8px; border: 1px solid #e5e5e5;">
+                            <div class="toolbar-section">
+                                <h4 style="margin: 0; font-size: 0.9rem; color: var(--lobo-gray);">Text Blocks</h4>
+                                <div class="toolbar-buttons" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('heading')" title="Add Heading">
+                                        <i class="fas fa-heading"></i> Heading
+                                    </button>
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('subheading')" title="Add Subheading">
+                                        <i class="fas fa-heading"></i> Subheading
+                                    </button>
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('paragraph')" title="Add Paragraph">
+                                        <i class="fas fa-paragraph"></i> Paragraph
+                                    </button>
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('blockquote')" title="Add Quote">
+                                        <i class="fas fa-quote-left"></i> Quote
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="toolbar-section">
+                                <h4 style="margin: 0; font-size: 0.9rem; color: var(--lobo-gray);">Media & Lists</h4>
+                                <div class="toolbar-buttons" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('image')" title="Add Image">
+                                        <i class="fas fa-image"></i> Image
+                                    </button>
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('gallery')" title="Add Gallery">
+                                        <i class="fas fa-images"></i> Gallery
+                                    </button>
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('list')" title="Add List">
+                                        <i class="fas fa-list"></i> List
+                                    </button>
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('numbered-list')" title="Add Numbered List">
+                                        <i class="fas fa-list-ol"></i> Numbered
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="toolbar-section">
+                                <h4 style="margin: 0; font-size: 0.9rem; color: var(--lobo-gray);">Layout & Special</h4>
+                                <div class="toolbar-buttons" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('divider')" title="Add Divider">
+                                        <i class="fas fa-minus"></i> Divider
+                                    </button>
+                                    <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('video')" title="Add Video">
+                                        <i class="fas fa-video"></i> Video
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Blocks Container -->
+                        <div id="blocks-container" class="blocks-container" style="display: grid; gap: 0.75rem; margin-top: 1rem;"></div>
+                        
+                        <!-- Quick Actions -->
+                        <div class="quick-actions" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e5e5;">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="addBlock('paragraph')">
+                                <i class="fas fa-plus"></i> Add Paragraph
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="duplicateLastBlock()">
+                                <i class="fas fa-copy"></i> Duplicate Last
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="clearAllBlocks()">
+                                <i class="fas fa-trash"></i> Clear All
+                            </button>
+                            <button type="button" id="preview-btn" class="btn btn-secondary btn-sm" onclick="previewContent()" style="display: none;">
+                                <i class="fas fa-eye"></i> Preview
+                            </button>
+                            <button type="button" id="export-btn" class="btn btn-secondary btn-sm" onclick="exportContent()" style="display: none;">
+                                <i class="fas fa-download"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Legacy content sections (hidden when rich builder is enabled) -->
+                    <div id="legacy-content-sections">
                     <div class="editor-toolbar">
                         <button type="button" id="add-paragraph" class="btn-section btn-primary">
                             <i class="fas fa-paragraph"></i> Add Text
@@ -525,11 +778,12 @@ $page_title = "Create Community Post - Yucca Club";
                         <button type="button" id="add-list" class="btn-section btn-primary">
                             <i class="fas fa-list"></i> Add List
                         </button>
-                    </div>
                 </div>
                 
                 <div id="content-sections">
                     <!-- Sections will be added here -->
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="submit-section">
@@ -789,9 +1043,11 @@ $page_title = "Create Community Post - Yucca Club";
                 errors.push('Please select a category for your post');
             }
             
-            // Check if there are any content sections
+            // Check if there are any content sections or rich builder blocks
             const sections = document.querySelectorAll('.content-section');
-            if (sections.length === 0) {
+            const hasRichBuilderContent = builderEnabled && blocks.length > 0;
+            
+            if (sections.length === 0 && !hasRichBuilderContent) {
                 errors.push('Please add at least one content section to your post');
             }
             
@@ -800,7 +1056,18 @@ $page_title = "Create Community Post - Yucca Club";
                 return;
             }
             
-            // Build content array from sections
+            // Build content based on which editor is being used
+            let finalContent;
+            
+            if (builderEnabled && blocks.length > 0) {
+                // Use rich builder content
+                finalContent = {
+                    type: 'rich_builder',
+                    blocks: blocks,
+                    html: generatePreviewHTML()
+                };
+            } else {
+                // Use legacy content sections
             const contentArray = [];
             
             sections.forEach(section => {
@@ -819,11 +1086,11 @@ $page_title = "Create Community Post - Yucca Club";
                 contentArray.push({ type, data });
             });
             
-            // Build final content JSON
-            const finalContent = {
+                finalContent = {
                 intro: intro,
                 sections: contentArray
             };
+            }
             
             // Show enhanced loading state
             const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -916,7 +1183,513 @@ $page_title = "Create Community Post - Yucca Club";
         // Initialize character counters when page loads
         document.addEventListener('DOMContentLoaded', () => {
             addCharacterCounters();
+            
+            // Initialize rich builder if needed
+            const contentTextarea = document.getElementById('post-content');
+            if (contentTextarea && contentTextarea.value.trim()) {
+                try {
+                    const existingContent = JSON.parse(contentTextarea.value);
+                    if (existingContent.type === 'rich_builder' && existingContent.blocks) {
+                        blocks = existingContent.blocks;
+                        builderEnabled = true;
+                        toggleBuilder();
+                    }
+                } catch (e) {
+                    // Content is not JSON, ignore
+                }
+            }
         });
+        
+        // Rich Builder Functions
+        let builderEnabled = false;
+        let blocks = [];
+        
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        
+        function toggleBuilder() {
+            builderEnabled = !builderEnabled;
+            const builder = document.getElementById('rich-builder');
+            const status = document.getElementById('builder-status');
+            const legacySections = document.getElementById('legacy-content-sections');
+            const loadTemplateBtn = document.getElementById('load-template-btn');
+            
+            if (builderEnabled) {
+                builder.style.display = 'block';
+                legacySections.style.display = 'none';
+                loadTemplateBtn.style.display = 'inline-block';
+                status.textContent = 'Rich builder: on';
+                status.style.color = '#28a745';
+                
+                // Convert existing content to blocks if any
+                convertTextToBlocks();
+            } else {
+                builder.style.display = 'none';
+                legacySections.style.display = 'block';
+                loadTemplateBtn.style.display = 'none';
+                status.textContent = 'Rich builder: off';
+                status.style.color = '#666';
+            }
+        }
+        
+        function convertTextToBlocks() {
+            const introTextarea = document.getElementById('post-intro');
+            if (introTextarea && introTextarea.value.trim()) {
+                // Convert intro to a paragraph block
+                const introBlock = {
+                    id: generateUUID(),
+                    type: 'paragraph',
+                    data: {
+                        text: introTextarea.value.trim()
+                    }
+                };
+                blocks = [introBlock];
+                renderBlocks();
+            }
+        }
+        
+        function addBlock(type) {
+            const block = {
+                id: generateUUID(),
+                type: type,
+                data: {}
+            };
+            
+            // Set default data based on block type
+            switch(type) {
+                case 'heading':
+                    block.data = { level: 1, text: '' };
+                    break;
+                case 'subheading':
+                    block.data = { level: 2, text: '' };
+                    break;
+                case 'paragraph':
+                    block.data = { text: '' };
+                    break;
+                case 'image':
+                    block.data = { url: '', alt: '', caption: '' };
+                    break;
+                case 'gallery':
+                    block.data = { images: [] };
+                    break;
+                case 'blockquote':
+                    block.data = { text: '', author: '' };
+                    break;
+                case 'list':
+                    block.data = { items: [''] };
+                    break;
+                case 'numbered-list':
+                    block.data = { items: [''] };
+                    break;
+                case 'video':
+                    block.data = { url: '', title: '' };
+                    break;
+                case 'divider':
+                    block.data = {};
+                    break;
+            }
+            
+            blocks.push(block);
+            renderBlocks();
+        }
+        
+        function removeBlock(blockId) {
+            blocks = blocks.filter(block => block.id !== blockId);
+            renderBlocks();
+        }
+        
+        function duplicateLastBlock() {
+            if (blocks.length > 0) {
+                const lastBlock = { ...blocks[blocks.length - 1] };
+                lastBlock.id = generateUUID();
+                blocks.push(lastBlock);
+                renderBlocks();
+            }
+        }
+        
+        function clearAllBlocks() {
+            if (confirm('Are you sure you want to clear all blocks? This cannot be undone.')) {
+                blocks = [];
+                renderBlocks();
+            }
+        }
+        
+        function previewContent() {
+            const html = generatePreviewHTML();
+            const newWindow = window.open('', '_blank');
+            newWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Content Preview</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; }
+                            h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 0.5rem; }
+                            h2 { color: #555; margin-top: 2rem; }
+                            p { line-height: 1.6; margin: 1rem 0; }
+                            blockquote { border-left: 4px solid #007bff; padding-left: 1rem; margin: 1rem 0; font-style: italic; }
+                            img { max-width: 100%; height: auto; border-radius: 8px; }
+                        </style>
+                    </head>
+                    <body>${html}</body>
+                </html>
+            `);
+        }
+        
+        function exportContent() {
+            const data = {
+                blocks: blocks,
+                html: generatePreviewHTML()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'content-export.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        function loadTemplate() {
+            if (!confirm('This will replace all current content with a sample template. Continue?')) {
+                return;
+            }
+            
+            // Enable builder if not already enabled
+            if (!builderEnabled) {
+                toggleBuilder();
+            }
+            
+            blocks = [];
+            
+            // Add sample blocks
+            const templateBlocks = [
+                {
+                    id: generateUUID(),
+                    type: 'heading',
+                    data: { level: 1, text: 'Welcome to My Post' }
+                },
+                {
+                    id: generateUUID(),
+                    type: 'paragraph',
+                    data: { text: 'This is a sample paragraph to get you started. You can edit or delete this content and add your own.' }
+                },
+                {
+                    id: generateUUID(),
+                    type: 'subheading',
+                    data: { level: 2, text: 'Getting Started' }
+                },
+                {
+                    id: generateUUID(),
+                    type: 'paragraph',
+                    data: { text: 'Use the toolbar above to add different types of content blocks. You can add headings, paragraphs, images, lists, and more.' }
+                },
+                {
+                    id: generateUUID(),
+                    type: 'list',
+                    data: { items: ['Add your first list item', 'Add your second list item', 'Add your third list item'] }
+                },
+                {
+                    id: generateUUID(),
+                    type: 'blockquote',
+                    data: { text: 'This is a sample quote. You can add inspiring quotes or important information here.', author: 'Sample Author' }
+                }
+            ];
+            
+            blocks = templateBlocks;
+            renderBlocks();
+            
+            showToast('Template loaded successfully! You can now customize the content.', 'success');
+        }
+        
+        function generatePreviewHTML() {
+            let html = '';
+            
+            blocks.forEach(block => {
+                const type = block.type;
+                const data = block.data;
+                
+                switch(type) {
+                    case 'heading':
+                        html += `<h${data.level} style="font-size: ${data.level == 1 ? '2rem' : '1.5rem'}; font-weight: bold; margin: 1rem 0; color: #333;">${data.text}</h${data.level}>`;
+                        break;
+                    case 'subheading':
+                        html += `<h${data.level} style="font-size: 1.5rem; font-weight: 600; margin: 0.8rem 0; color: #555;">${data.text}</h${data.level}>`;
+                        break;
+                    case 'paragraph':
+                        html += `<p style="margin: 1rem 0; line-height: 1.6; color: #333;">${data.text}</p>`;
+                        break;
+                    case 'image':
+                        if (data.url) {
+                            html += `<div style="margin: 1rem 0; text-align: center;"><img src="${data.url}" alt="${data.alt}" style="max-width: 100%; height: auto; border-radius: 8px;">`;
+                            if (data.caption) {
+                                html += `<p style="font-style: italic; color: #666; margin-top: 0.5rem;">${data.caption}</p>`;
+                            }
+                            html += `</div>`;
+                        }
+                        break;
+                    case 'gallery':
+                        if (data.images && data.images.length > 0) {
+                            html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0;">`;
+                            data.images.forEach(img => {
+                                html += `<img src="${img.url}" alt="${img.alt}" style="width: 100%; height: auto; border-radius: 8px;">`;
+                            });
+                            html += `</div>`;
+                        }
+                        break;
+                    case 'blockquote':
+                        html += `<blockquote style="border-left: 4px solid #007bff; margin: 1rem 0; padding: 1rem 1.5rem; background: #f8f9fa; font-style: italic; color: #555;">${data.text}`;
+                        if (data.author) {
+                            html += `<footer style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">— ${data.author}</footer>`;
+                        }
+                        html += `</blockquote>`;
+                        break;
+                    case 'list':
+                        html += `<ul style="margin: 1rem 0; padding-left: 2rem;">`;
+                        data.items.forEach(item => {
+                            html += `<li style="margin: 0.5rem 0; line-height: 1.5;">${item}</li>`;
+                        });
+                        html += `</ul>`;
+                        break;
+                    case 'numbered-list':
+                        html += `<ol style="margin: 1rem 0; padding-left: 2rem;">`;
+                        data.items.forEach(item => {
+                            html += `<li style="margin: 0.5rem 0; line-height: 1.5;">${item}</li>`;
+                        });
+                        html += `</ol>`;
+                        break;
+                    case 'video':
+                        if (data.url) {
+                            html += `<div style="margin: 1rem 0; text-align: center;"><video controls style="max-width: 100%; height: auto; border-radius: 8px;"><source src="${data.url}" type="video/mp4">Your browser does not support the video tag.</video>`;
+                            if (data.title) {
+                                html += `<p style="font-weight: 600; margin-top: 0.5rem;">${data.title}</p>`;
+                            }
+                            html += `</div>`;
+                        }
+                        break;
+                    case 'divider':
+                        html += `<hr style="margin: 2rem 0; border: none; border-top: 2px solid #e5e5e5;">`;
+                        break;
+                }
+            });
+            
+            return html;
+        }
+        
+        function renderBlocks() {
+            const container = document.getElementById('blocks-container');
+            container.innerHTML = '';
+            
+            blocks.forEach((block, index) => {
+                const blockElement = document.createElement('div');
+                blockElement.className = 'block-item';
+                blockElement.dataset.blockId = block.id;
+                blockElement.draggable = true;
+                
+                let content = '';
+                const type = block.type;
+                const data = block.data;
+                
+                switch(type) {
+                    case 'heading':
+                        content = `
+                            <div class="block-content">
+                                <input type="text" placeholder="Enter heading text..." value="${data.text}" onchange="updateBlockData('${block.id}', 'text', this.value)">
+                                <select onchange="updateBlockData('${block.id}', 'level', this.value)" style="margin-top: 0.5rem;">
+                                    <option value="1" ${data.level == 1 ? 'selected' : ''}>H1</option>
+                                    <option value="2" ${data.level == 2 ? 'selected' : ''}>H2</option>
+                                    <option value="3" ${data.level == 3 ? 'selected' : ''}>H3</option>
+                                </select>
+                            </div>
+                        `;
+                        break;
+                    case 'subheading':
+                        content = `
+                            <div class="block-content">
+                                <input type="text" placeholder="Enter subheading text..." value="${data.text}" onchange="updateBlockData('${block.id}', 'text', this.value)">
+                                <select onchange="updateBlockData('${block.id}', 'level', this.value)" style="margin-top: 0.5rem;">
+                                    <option value="2" ${data.level == 2 ? 'selected' : ''}>H2</option>
+                                    <option value="3" ${data.level == 3 ? 'selected' : ''}>H3</option>
+                                    <option value="4" ${data.level == 4 ? 'selected' : ''}>H4</option>
+                                </select>
+                            </div>
+                        `;
+                        break;
+                    case 'paragraph':
+                        content = `
+                            <div class="block-content">
+                                <textarea placeholder="Enter paragraph text..." onchange="updateBlockData('${block.id}', 'text', this.value)">${data.text}</textarea>
+                            </div>
+                        `;
+                        break;
+                    case 'image':
+                        content = `
+                            <div class="block-content">
+                                <input type="url" placeholder="Image URL..." value="${data.url}" onchange="updateBlockData('${block.id}', 'url', this.value)" style="margin-bottom: 0.5rem;">
+                                <input type="text" placeholder="Alt text..." value="${data.alt}" onchange="updateBlockData('${block.id}', 'alt', this.value)" style="margin-bottom: 0.5rem;">
+                                <input type="text" placeholder="Caption (optional)..." value="${data.caption}" onchange="updateBlockData('${block.id}', 'caption', this.value)">
+                            </div>
+                        `;
+                        break;
+                    case 'gallery':
+                        content = `
+                            <div class="block-content">
+                                <p style="color: #666; font-size: 0.9rem;">Gallery functionality coming soon. For now, use individual image blocks.</p>
+                            </div>
+                        `;
+                        break;
+                    case 'blockquote':
+                        content = `
+                            <div class="block-content">
+                                <textarea placeholder="Enter quote text..." onchange="updateBlockData('${block.id}', 'text', this.value)" style="margin-bottom: 0.5rem;">${data.text}</textarea>
+                                <input type="text" placeholder="Author (optional)..." value="${data.author}" onchange="updateBlockData('${block.id}', 'author', this.value)">
+                            </div>
+                        `;
+                        break;
+                    case 'list':
+                        content = `
+                            <div class="block-content">
+                                <div id="list-items-${block.id}">
+                                    ${data.items.map((item, i) => `
+                                        <input type="text" placeholder="List item ${i + 1}..." value="${item}" onchange="updateListItem('${block.id}', ${i}, this.value)" style="margin-bottom: 0.5rem;">
+                                    `).join('')}
+                                </div>
+                                <button type="button" onclick="addListItem('${block.id}')" style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">Add Item</button>
+                            </div>
+                        `;
+                        break;
+                    case 'numbered-list':
+                        content = `
+                            <div class="block-content">
+                                <div id="numbered-items-${block.id}">
+                                    ${data.items.map((item, i) => `
+                                        <input type="text" placeholder="Item ${i + 1}..." value="${item}" onchange="updateNumberedItem('${block.id}', ${i}, this.value)" style="margin-bottom: 0.5rem;">
+                                    `).join('')}
+                                </div>
+                                <button type="button" onclick="addNumberedItem('${block.id}')" style="margin-top: 0.5rem; padding: 0.25rem 0.5rem; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">Add Item</button>
+                            </div>
+                        `;
+                        break;
+                    case 'video':
+                        content = `
+                            <div class="block-content">
+                                <input type="url" placeholder="Video URL..." value="${data.url}" onchange="updateBlockData('${block.id}', 'url', this.value)" style="margin-bottom: 0.5rem;">
+                                <input type="text" placeholder="Video title (optional)..." value="${data.title}" onchange="updateBlockData('${block.id}', 'title', this.value)">
+                            </div>
+                        `;
+                        break;
+                    case 'divider':
+                        content = `
+                            <div class="block-content">
+                                <p style="color: #666; font-size: 0.9rem; text-align: center; margin: 0;">Horizontal divider</p>
+                            </div>
+                        `;
+                        break;
+                }
+                
+                blockElement.innerHTML = `
+                    <div class="block-header">
+                        <span class="block-type">${type}</span>
+                        <div class="block-actions">
+                            <button type="button" onclick="duplicateBlock('${block.id}')" title="Duplicate">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button type="button" onclick="moveBlock('${block.id}', 'up')" title="Move Up" ${index === 0 ? 'disabled' : ''}>
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button type="button" onclick="moveBlock('${block.id}', 'down')" title="Move Down" ${index === blocks.length - 1 ? 'disabled' : ''}>
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                            <button type="button" onclick="removeBlock('${block.id}')" title="Delete" class="btn-danger">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    ${content}
+                `;
+                
+                container.appendChild(blockElement);
+            });
+            
+            updateContent();
+        }
+        
+        function updateBlockData(blockId, key, value) {
+            const block = blocks.find(b => b.id === blockId);
+            if (block) {
+                block.data[key] = value;
+                updateContent();
+            }
+        }
+        
+        function addListItem(blockId) {
+            const block = blocks.find(b => b.id === blockId);
+            if (block) {
+                block.data.items.push('');
+                renderBlocks();
+            }
+        }
+        
+        function updateListItem(blockId, index, value) {
+            const block = blocks.find(b => b.id === blockId);
+            if (block && block.data.items[index] !== undefined) {
+                block.data.items[index] = value;
+                updateContent();
+            }
+        }
+        
+        function addNumberedItem(blockId) {
+            const block = blocks.find(b => b.id === blockId);
+            if (block) {
+                block.data.items.push('');
+                renderBlocks();
+            }
+        }
+        
+        function updateNumberedItem(blockId, index, value) {
+            const block = blocks.find(b => b.id === blockId);
+            if (block && block.data.items[index] !== undefined) {
+                block.data.items[index] = value;
+                updateContent();
+            }
+        }
+        
+        function duplicateBlock(blockId) {
+            const block = blocks.find(b => b.id === blockId);
+            if (block) {
+                const newBlock = { ...block };
+                newBlock.id = generateUUID();
+                const index = blocks.findIndex(b => b.id === blockId);
+                blocks.splice(index + 1, 0, newBlock);
+                renderBlocks();
+            }
+        }
+        
+        function moveBlock(blockId, direction) {
+            const index = blocks.findIndex(b => b.id === blockId);
+            if (index === -1) return;
+            
+            if (direction === 'up' && index > 0) {
+                [blocks[index], blocks[index - 1]] = [blocks[index - 1], blocks[index]];
+            } else if (direction === 'down' && index < blocks.length - 1) {
+                [blocks[index], blocks[index + 1]] = [blocks[index + 1], blocks[index]];
+            }
+            
+            renderBlocks();
+        }
+        
+        function updateContent() {
+            // Save blocks as JSON for storage
+            const contentTextarea = document.getElementById('post-content');
+            if (contentTextarea) {
+                contentTextarea.value = JSON.stringify(blocks, null, 2);
+            }
+        }
     </script>
     
     <script src="ui/js/if-then.js"></script>

@@ -6,6 +6,25 @@
 
 require_once 'config.php';
 
+// Get user posts count for conditional navigation
+$user_posts_count = 0;
+if (is_logged_in()) {
+    try {
+        $conn = db_connect();
+        $stmt = $conn->prepare("SELECT COUNT(*) as count FROM user_posts WHERE user_id = ?");
+        $stmt->bind_param("i", $_SESSION['user_id']);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $user_posts_count = $row['count'];
+        }
+        $stmt->close();
+        $conn->close();
+    } catch (Exception $e) {
+        error_log("Error getting user posts count: " . $e->getMessage());
+    }
+}
+
 // Get slug from URL
 $slug = $_GET['slug'] ?? '';
 $type = $_GET['type'] ?? 'community'; // community, story, guide
@@ -97,11 +116,20 @@ $page_title = htmlspecialchars($post['title']) . " - Yucca Club";
                     <li><a href="https://yucca.printify.me/" target="_blank" rel="noopener noreferrer">Shop</a></li>
                     <li><a href="nav/community/index.php">Community</a></li>
                     <li><a href="nav/membership/index.php">Membership</a></li>
+                    <li><a href="nav/exclusive/index.php">Exclusive</a></li>
                 </ul>
             </nav>
             <div class="header-actions">
                 <?php if (is_logged_in()): ?>
                     <span class="desktop-only" style="font-size: 14px; font-weight: 700; color: var(--lobo-gray);"><?= htmlspecialchars($_SESSION['user_email']) ?></span>
+                    <?php if ($user_posts_count > 0): ?>
+                    <a href="my-posts.php" id="my-posts" aria-label="My posts" title="My posts" class="desktop-only" style="font-size: 14px; color: var(--yucca-yellow); margin-right: 0.5rem;">
+                        <i class="fas fa-file-alt" aria-hidden="true"></i>
+                    </a>
+                    <?php endif; ?>
+                    <a href="create-post.php" id="create-post" aria-label="Create post" title="Create post" class="desktop-only" style="font-size: 14px; color: var(--yucca-yellow); margin-right: 0.5rem;">
+                        <i class="fas fa-edit" aria-hidden="true"></i>
+                    </a>
                     <a href="?logout=true" aria-label="Logout" class="desktop-only">
                         <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                     </a>
@@ -295,57 +323,57 @@ $page_title = htmlspecialchars($post['title']) . " - Yucca Club";
                     
                     // Legacy format with intro and sections
                     elseif (is_array($contentData) && (isset($contentData['intro']) || isset($contentData['sections']))) {
-                        $rendered = true;
-                        
-                        // Render intro if exists
-                        if (!empty($contentData['intro'])) {
-                            echo "<p style=\"font-size:1.25rem; font-weight:500; color:var(--lobo-gray); margin-bottom:2rem;\">" . nl2br(htmlspecialchars($contentData['intro'])) . "</p>";
-                        }
-                        
-                        // Render sections
-                        if (isset($contentData['sections']) && is_array($contentData['sections'])) {
-                            foreach ($contentData['sections'] as $section) {
-                                $type = $section['type'] ?? '';
-                                $data = $section['data'] ?? [];
-                                
-                                switch($type) {
-                                    case 'paragraph':
-                                        if (!empty($data['text'])) {
-                                            echo "<p style=\"margin:1rem 0;\">" . nl2br(htmlspecialchars($data['text'])) . "</p>";
+                    $rendered = true;
+                    
+                    // Render intro if exists
+                    if (!empty($contentData['intro'])) {
+                        echo "<p style=\"font-size:1.25rem; font-weight:500; color:var(--lobo-gray); margin-bottom:2rem;\">" . nl2br(htmlspecialchars($contentData['intro'])) . "</p>";
+                    }
+                    
+                    // Render sections
+                    if (isset($contentData['sections']) && is_array($contentData['sections'])) {
+                        foreach ($contentData['sections'] as $section) {
+                            $type = $section['type'] ?? '';
+                            $data = $section['data'] ?? [];
+                            
+                            switch($type) {
+                                case 'paragraph':
+                                    if (!empty($data['text'])) {
+                                        echo "<p style=\"margin:1rem 0;\">" . nl2br(htmlspecialchars($data['text'])) . "</p>";
+                                    }
+                                    break;
+                                    
+                                case 'heading':
+                                    if (!empty($data['text'])) {
+                                        echo "<h2 style=\"font-size:2rem; margin-top:2rem; margin-bottom:1rem; font-family:var(--font-serif); color:var(--lobo-gray);\">" . htmlspecialchars($data['text']) . "</h2>";
+                                    }
+                                    break;
+                                    
+                                case 'image':
+                                    if (!empty($data['url'])) {
+                                        $url = htmlspecialchars($data['url']);
+                                        $alt = htmlspecialchars($data['alt'] ?? '');
+                                        echo "<figure style=\"margin:2rem 0;\">";
+                                        echo "<img src=\"$url\" alt=\"$alt\" style=\"width:100%; border-radius:12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);\">";
+                                        if (!empty($alt)) {
+                                            echo "<figcaption style=\"font-size:0.9rem; opacity:0.8; margin-top:0.75rem; text-align:center; color:var(--lobo-gray);\">$alt</figcaption>";
                                         }
-                                        break;
-                                        
-                                    case 'heading':
-                                        if (!empty($data['text'])) {
-                                            echo "<h2 style=\"font-size:2rem; margin-top:2rem; margin-bottom:1rem; font-family:var(--font-serif); color:var(--lobo-gray);\">" . htmlspecialchars($data['text']) . "</h2>";
-                                        }
-                                        break;
-                                        
-                                    case 'image':
-                                        if (!empty($data['url'])) {
-                                            $url = htmlspecialchars($data['url']);
-                                            $alt = htmlspecialchars($data['alt'] ?? '');
-                                            echo "<figure style=\"margin:2rem 0;\">";
-                                            echo "<img src=\"$url\" alt=\"$alt\" style=\"width:100%; border-radius:12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);\">";
-                                            if (!empty($alt)) {
-                                                echo "<figcaption style=\"font-size:0.9rem; opacity:0.8; margin-top:0.75rem; text-align:center; color:var(--lobo-gray);\">$alt</figcaption>";
+                                        echo "</figure>";
+                                    }
+                                    break;
+                                    
+                                case 'list':
+                                    if (!empty($data['text'])) {
+                                        $items = explode("\n", $data['text']);
+                                        echo "<ul style=\"margin:1.5rem 0; padding-left: 2rem; list-style: disc;\">";
+                                        foreach ($items as $item) {
+                                            if (trim($item)) {
+                                                echo "<li style=\"margin:0.5rem 0;\">" . htmlspecialchars(trim($item)) . "</li>";
                                             }
-                                            echo "</figure>";
                                         }
-                                        break;
-                                        
-                                    case 'list':
-                                        if (!empty($data['text'])) {
-                                            $items = explode("\n", $data['text']);
-                                            echo "<ul style=\"margin:1.5rem 0; padding-left: 2rem; list-style: disc;\">";
-                                            foreach ($items as $item) {
-                                                if (trim($item)) {
-                                                    echo "<li style=\"margin:0.5rem 0;\">" . htmlspecialchars(trim($item)) . "</li>";
-                                                }
-                                            }
-                                            echo "</ul>";
-                                        }
-                                        break;
+                                        echo "</ul>";
+                                    }
+                                    break;
                                 }
                             }
                         }

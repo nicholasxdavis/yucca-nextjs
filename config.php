@@ -211,6 +211,12 @@ function has_role($role) {
     return isset($_SESSION['user_role']) && $_SESSION['user_role'] === $role;
 }
 
+// Function to check if user is pro member
+function is_pro() {
+    if (!isset($_SESSION['user_id'])) return false;
+    return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'pro';
+}
+
 // Function to require authentication
 function require_auth() {
     if (!is_logged_in()) {

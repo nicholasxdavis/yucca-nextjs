@@ -7,12 +7,14 @@ require_once '../../auth_handler.php';
 $is_logged_in = is_logged_in();
 $user_email = $is_logged_in ? htmlspecialchars($_SESSION['user_email']) : '';
 $user_id = $_SESSION['user_id'] ?? null;
+$is_pro = is_pro();
+$post_limit = $is_pro ? 30 : 5;
 
 // Get user's post usage for current month
 $post_usage = [
     'current' => 0,
-    'limit' => 5,
-    'remaining' => 5
+    'limit' => $post_limit,
+    'remaining' => $post_limit
 ];
 
 $community_posts = [];
@@ -39,7 +41,7 @@ if ($is_logged_in) {
         
         if ($row = $result->fetch_assoc()) {
             $post_usage['current'] = $row['post_count'];
-            $post_usage['remaining'] = max(0, $post_usage['limit'] - $row['post_count']);
+            $post_usage['remaining'] = max(0, $post_limit - $row['post_count']);
         }
         
         $stmt->close();
@@ -131,7 +133,7 @@ $page_title = "Community - Yucca Club";
         .community-hero {
             padding: 2rem 1rem;
             text-align: center;
-            background: linear-gradient(135deg, var(--desert-sand) 0%, var(--off-white) 100%);
+            background: transparent;
         }
         
         .community-hero h1 {
@@ -448,6 +450,7 @@ $page_title = "Community - Yucca Club";
                     <li><a href="https://yucca.printify.me/" target="_blank">Shop</a></li>
                     <li><a href="index.php" class="active">Community</a></li>
                     <li><a href="../membership/index.php">Membership</a></li>
+                    <li><a href="../exclusive/index.php">Exclusive</a></li>
                 </ul>
             </nav>
             <div class="header-actions">
@@ -514,7 +517,7 @@ $page_title = "Community - Yucca Club";
 
     <main>
         <div id="shimmer-loader">
-            <div class="container">
+        <div class="container">
                 <div class="community-hero">
                     <div class="shimmer" style="height: 60px; width: 300px; margin: 0 auto 1rem;"></div>
                     <div class="shimmer" style="height: 20px; width: 500px; margin: 0 auto 2rem;"></div>
@@ -556,6 +559,13 @@ $page_title = "Community - Yucca Club";
                     <div class="profile-info">
                         <h2><?= htmlspecialchars(explode('@', $user_email)[0]) ?></h2>
                         <p><?= $user_email ?></p>
+                        <?php if ($is_pro): ?>
+                        <p style="margin-top: 0.5rem;">
+                            <span class="status-badge" style="background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color: #333; font-weight: 700;">
+                                <i class="fas fa-crown" style="margin-right: 0.25rem;"></i>Pro Member
+                            </span>
+                        </p>
+                        <?php endif; ?>
                     </div>
                 </div>
                 
@@ -618,40 +628,40 @@ $page_title = "Community - Yucca Club";
                         <?php endif; ?>
                         
                         <div class="post-card-content">
-                            <?php if (!empty($post['category'])): ?>
+                        <?php if (!empty($post['category'])): ?>
                             <span style="display: inline-block; background: var(--yucca-yellow); color: white; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; margin-bottom: 0.5rem;">
-                                <?= htmlspecialchars($post['category']) ?>
-                            </span>
-                            <?php endif; ?>
-                            
-                            <h3><?= htmlspecialchars($post['title']) ?></h3>
-                            
-                            <div class="post-meta">
-                                <i class="fas fa-user"></i>
-                                <span><?= htmlspecialchars(explode('@', $post['user_email'])[0]) ?></span>
-                                <span>•</span>
-                                <i class="fas fa-calendar"></i>
-                                <span><?= date('M j, Y', strtotime($post['created_at'])) ?></span>
-                            </div>
-                            
-                            <?php 
-                            $content = json_decode($post['content'], true);
-                            $excerpt = '';
-                            if ($content && isset($content['intro'])) {
-                                $excerpt = $content['intro'];
-                            } else {
-                                $excerpt = $post['content'];
-                            }
-                            $excerpt = strip_tags($excerpt);
+                            <?= htmlspecialchars($post['category']) ?>
+                        </span>
+                        <?php endif; ?>
+                        
+                        <h3><?= htmlspecialchars($post['title']) ?></h3>
+                        
+                        <div class="post-meta">
+                            <i class="fas fa-user"></i>
+                            <span><?= htmlspecialchars(explode('@', $post['user_email'])[0]) ?></span>
+                            <span>•</span>
+                            <i class="fas fa-calendar"></i>
+                            <span><?= date('M j, Y', strtotime($post['created_at'])) ?></span>
+                        </div>
+                        
+                        <?php 
+                        $content = json_decode($post['content'], true);
+                        $excerpt = '';
+                        if ($content && isset($content['intro'])) {
+                            $excerpt = $content['intro'];
+                        } else {
+                            $excerpt = $post['content'];
+                        }
+                        $excerpt = strip_tags($excerpt);
                             if (strlen($excerpt) > 150) {
                                 $excerpt = substr($excerpt, 0, 150) . '...';
-                            }
-                            ?>
-                            <p class="post-excerpt"><?= htmlspecialchars($excerpt) ?></p>
-                            
+                        }
+                        ?>
+                        <p class="post-excerpt"><?= htmlspecialchars($excerpt) ?></p>
+                        
                             <a href="../../view-post.php?slug=<?= htmlspecialchars($post['slug']) ?>&type=community" class="read-more-btn">
-                                <i class="fas fa-arrow-right"></i> Read More
-                            </a>
+                            <i class="fas fa-arrow-right"></i> Read More
+                        </a>
                         </div>
                     </article>
                     <?php endforeach; ?>

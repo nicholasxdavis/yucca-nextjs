@@ -103,7 +103,7 @@ $page_title = "Local Stories | El Paso Las Cruces Metro Area | Yucca Club";
         .stories-hero {
             padding: 2rem 1rem;
             text-align: center;
-            background: linear-gradient(135deg, var(--desert-sand) 0%, var(--off-white) 100%);
+            background: transparent;
         }
         
         .stories-hero h1 {
@@ -426,6 +426,7 @@ $page_title = "Local Stories | El Paso Las Cruces Metro Area | Yucca Club";
                     <li><a href="https://yucca.printify.me/" target="_blank" rel="noopener noreferrer">Shop</a></li>
                     <li><a href="../community/index.php">Community</a></li>
                     <li><a href="../membership/index.php">Membership</a></li>
+                    <li><a href="../exclusive/index.php">Exclusive</a></li>
                 </ul>
             </nav>
             <div class="header-actions">
