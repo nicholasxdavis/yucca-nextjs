@@ -1,0 +1,35 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://www.yuccaclub.com/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Disallow admin and sensitive areas
+Disallow: /admin.php
+Disallow: /auth_handler.php
+Disallow: /config.php
+Disallow: /init.php
+Disallow: /migrate_add_role_column.php
+Disallow: /reset_password.php
+Disallow: /upload.php
+Disallow: /api/
+Disallow: /saved-imgs/
+
+# Allow important pages
+Allow: /nav/
+Allow: /ui/
+Allow: /create-post.php
+Allow: /view-post.php
+Allow: /my-posts.php
+Allow: /privacy_policy.php
+
+# Block common bot traps
+Disallow: /*.php$
+Allow: /index.php
+Allow: /create-post.php
+Allow: /view-post.php
+Allow: /my-posts.php
+Allow: /privacy_policy.php

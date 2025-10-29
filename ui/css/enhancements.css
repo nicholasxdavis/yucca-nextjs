@@ -1,0 +1,403 @@
+/**
+ * Yucca Club - UI Enhancements Styles
+ * Companion styles for enhancements.js
+ * Core styles work even if JavaScript fails
+ */
+
+/* ============================================
+   1. FADE-IN ANIMATIONS
+   ============================================ */
+
+.fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Stagger animations for lists */
+.fade-in:nth-child(1) { transition-delay: 0.1s; }
+.fade-in:nth-child(2) { transition-delay: 0.2s; }
+.fade-in:nth-child(3) { transition-delay: 0.3s; }
+.fade-in:nth-child(4) { transition-delay: 0.4s; }
+.fade-in:nth-child(5) { transition-delay: 0.5s; }
+
+
+/* ============================================
+   2. FORM ENHANCEMENTS
+   ============================================ */
+
+.input-focused .form-input {
+    border-color: var(--yucca-yellow, #a8aa19);
+    box-shadow: 0 0 0 3px rgba(168, 170, 25, 0.1);
+}
+
+.input-filled .form-input {
+    background-color: var(--desert-sand, #F5F1E9);
+}
+
+input.invalid {
+    border-color: #ff6b6b;
+    animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+.password-strength {
+    height: 3px;
+    width: 100%;
+    background: #e0e0e0;
+    border-radius: 3px;
+    margin-top: 5px;
+    position: relative;
+    overflow: hidden;
+}
+
+.password-strength::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.password-strength.weak::after {
+    width: 33%;
+    background-color: #ff6b6b;
+}
+
+.password-strength.medium::after {
+    width: 66%;
+    background-color: #ffa500;
+}
+
+.password-strength.strong::after {
+    width: 100%;
+    background-color: #4ecdc4;
+}
+
+
+/* ============================================
+   3. BUTTON RIPPLE EFFECT
+   ============================================ */
+
+.cta-button, button, .btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    transform: scale(0);
+    animation: ripple-animation 0.6s ease-out;
+    pointer-events: none;
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+
+/* ============================================
+   4. CARD HOVER EFFECTS
+   ============================================ */
+
+.story-card, .guide-card, .pricing-card, .post-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.story-card.hover-active, 
+.guide-card.hover-active, 
+.pricing-card.hover-active, 
+.post-card.hover-active {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+
+/* ============================================
+   5. LAZY LOADING STATES
+   ============================================ */
+
+img.lazy-loading {
+    filter: blur(5px);
+    transform: scale(1.05);
+    transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+img.lazy-loaded {
+    filter: blur(0);
+    transform: scale(1);
+}
+
+img.lazy-error {
+    opacity: 0.5;
+    background: #f0f0f0;
+}
+
+
+/* ============================================
+   6. MODAL ENHANCEMENTS
+   ============================================ */
+
+.modal-overlay {
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay .modal-content {
+    transition: transform 0.3s ease;
+    transform: scale(0.9);
+}
+
+.modal-overlay.visible .modal-content {
+    transform: scale(1);
+}
+
+
+/* ============================================
+   7. LOADING STATE
+   ============================================ */
+
+body.loading {
+    cursor: wait;
+}
+
+body.loading::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--yucca-yellow, #a8aa19) 0%, var(--cactus-green, #4a7c59) 100%);
+    z-index: 9999;
+    animation: loading-bar 2s ease-in-out infinite;
+}
+
+@keyframes loading-bar {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+
+/* ============================================
+   8. CUSTOM TOOLTIPS
+   ============================================ */
+
+.custom-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    white-space: nowrap;
+    z-index: 10000;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-5px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.custom-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.custom-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+}
+
+
+/* ============================================
+   9. STICKY HEADER ENHANCEMENTS
+   ============================================ */
+
+.site-header {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.site-header.scrolled {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.site-header.header-hidden {
+    transform: translateY(-100%);
+}
+
+
+/* ============================================
+   10. COPY SUCCESS MESSAGE
+   ============================================ */
+
+.copy-success {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #4ecdc4;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    animation: fadeInOut 2s ease forwards;
+}
+
+@keyframes fadeInOut {
+    0%, 100% { opacity: 0; }
+    10%, 90% { opacity: 1; }
+}
+
+
+/* ============================================
+   11. SKIP LINK (ACCESSIBILITY)
+   ============================================ */
+
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--yucca-yellow, #a8aa19);
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    z-index: 100000;
+    transition: top 0.3s ease;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+
+/* ============================================
+   12. DROPDOWN ENHANCEMENTS
+   ============================================ */
+
+.dropdown, .mobile-dropdown {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.dropdown.open, .mobile-dropdown.open {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+/* ============================================
+   13. SMOOTH TRANSITIONS (GENERAL)
+   ============================================ */
+
+a, button, input, textarea, select {
+    transition: all 0.2s ease;
+}
+
+/* Prevent transitions during page load */
+.preload * {
+    transition: none !important;
+}
+
+
+/* ============================================
+   14. DARK MODE TRANSITIONS
+   ============================================ */
+
+html {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+
+/* ============================================
+   15. PARALLAX CONTAINER
+   ============================================ */
+
+.hero-section {
+    transition: transform 0.3s cubic-bezier(0.33, 0.66, 0.66, 1);
+    will-change: transform;
+}
+
+
+/* ============================================
+   16. REDUCED MOTION SUPPORT
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .fade-in {
+        opacity: 1;
+        transform: none;
+    }
+    
+    .hero-section {
+        transform: none !important;
+    }
+}
+
+
+/* ============================================
+   17. PRINT STYLES
+   ============================================ */
+
+@media print {
+    .skip-link,
+    .custom-tooltip,
+    .ripple,
+    .loading-bar {
+        display: none !important;
+    }
+    
+    .fade-in {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+
+
+/* ============================================
+   18. FOCUS VISIBLE POLYFILL
+   ============================================ */
+
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+:focus-visible {
+    outline: 2px solid var(--yucca-yellow, #a8aa19);
+    outline-offset: 2px;
+}
+
+
+
