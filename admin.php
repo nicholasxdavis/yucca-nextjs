@@ -1315,6 +1315,10 @@ try {
     </div>
 
     <script>
+        // Global variables for rich builder
+        let builderEnabled = false;
+        let blocks = [];
+        
         // Navigation
         function showSection(sectionName) {
             // Hide all sections
@@ -1742,6 +1746,12 @@ try {
                 const type = document.getElementById('content-type').value;
                 const action = document.getElementById('content-id').value ? 'update' : 'create';
                 
+                // Convert blocks to HTML if rich builder is enabled
+                if (builderEnabled && blocks.length > 0) {
+                    const htmlContent = generatePreviewHTML();
+                    formData.set('content', htmlContent);
+                }
+                
                 formData.append('action', action);
                 if (document.getElementById('content-id').value) {
                     formData.append('id', document.getElementById('content-id').value);
@@ -1973,6 +1983,21 @@ try {
                 .replace(/\s+/g, '-') // Replace spaces with hyphens
                 .replace(/-+/g, '-') // Replace multiple hyphens with single
                 .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+        }
+        
+        // Auto-generate slug when title changes
+        function setupSlugGeneration() {
+            const titleField = document.getElementById('content-title');
+            const slugField = document.getElementById('content-slug');
+            
+            if (titleField && slugField) {
+                titleField.addEventListener('input', function() {
+                    if (slugField.value === '' || slugField.value.includes('welcome-to-yucca-club')) {
+                        const generatedSlug = generateSlugFromTitle(this.value);
+                        slugField.value = generatedSlug;
+                    }
+                });
+            }
         }
         
         // Drag and drop functionality for blocks
@@ -3299,7 +3324,98 @@ try {
         }
         
         function updateContent() {
+            // Save blocks as JSON for storage
             document.getElementById('content-body').value = JSON.stringify(blocks, null, 2);
+            
+            // Also generate HTML preview for display
+            const htmlContent = generatePreviewHTML();
+            document.getElementById('content-preview').innerHTML = htmlContent;
+        }
+        
+        // Generate HTML from blocks for display
+        function generatePreviewHTML() {
+            let html = '';
+            
+            blocks.forEach(block => {
+                switch(block.type) {
+                    case 'heading':
+                        html += `<h1 style="font-size: 2rem; font-weight: bold; margin: 1rem 0; color: #333;">${block.data.text || ''}</h1>`;
+                        break;
+                    case 'subheading':
+                        html += `<h2 style="font-size: 1.5rem; font-weight: 600; margin: 0.8rem 0; color: #555;">${block.data.text || ''}</h2>`;
+                        break;
+                    case 'paragraph':
+                        html += `<p style="margin: 1rem 0; line-height: 1.6; color: #333;">${(block.data.text || '').replace(/\n/g, '<br>')}</p>`;
+                        break;
+                    case 'image':
+                        if (block.data.url) {
+                            html += `<div style="margin: 1rem 0; text-align: center;">`;
+                            html += `<img src="${block.data.url}" alt="${block.data.alt || ''}" style="max-width: 100%; height: auto; border-radius: 8px;">`;
+                            if (block.data.caption) {
+                                html += `<p style="font-style: italic; color: #666; margin-top: 0.5rem;">${block.data.caption}</p>`;
+                            }
+                            html += `</div>`;
+                        }
+                        break;
+                    case 'gallery':
+                        if (block.data.images && block.data.images.length > 0) {
+                            html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0;">`;
+                            block.data.images.forEach(image => {
+                                if (image.url) {
+                                    html += `<div style="text-align: center;">`;
+                                    html += `<img src="${image.url}" alt="${image.alt || ''}" style="width: 100%; height: auto; border-radius: 8px;">`;
+                                    if (image.caption) {
+                                        html += `<p style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">${image.caption}</p>`;
+                                    }
+                                    html += `</div>`;
+                                }
+                            });
+                            html += `</div>`;
+                        }
+                        break;
+                    case 'blockquote':
+                        html += `<blockquote style="border-left: 4px solid #007bff; margin: 1rem 0; padding: 1rem 1.5rem; background: #f8f9fa; font-style: italic; color: #555;">${block.data.text || ''}</blockquote>`;
+                        break;
+                    case 'list':
+                        if (block.data.items && block.data.items.length > 0) {
+                            html += `<ul style="margin: 1rem 0; padding-left: 2rem;">`;
+                            block.data.items.forEach(item => {
+                                html += `<li style="margin: 0.5rem 0; line-height: 1.5;">${item}</li>`;
+                            });
+                            html += `</ul>`;
+                        }
+                        break;
+                    case 'numbered-list':
+                        if (block.data.items && block.data.items.length > 0) {
+                            html += `<ol style="margin: 1rem 0; padding-left: 2rem;">`;
+                            block.data.items.forEach(item => {
+                                html += `<li style="margin: 0.5rem 0; line-height: 1.5;">${item}</li>`;
+                            });
+                            html += `</ol>`;
+                        }
+                        break;
+                    case 'video':
+                        if (block.data.url) {
+                            html += `<div style="margin: 1rem 0; text-align: center;">`;
+                            html += `<div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000;">`;
+                            html += `<iframe src="${block.data.url}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allowfullscreen></iframe>`;
+                            html += `</div>`;
+                            if (block.data.title) {
+                                html += `<h3 style="margin: 0.5rem 0; color: #333;">${block.data.title}</h3>`;
+                            }
+                            if (block.data.description) {
+                                html += `<p style="color: #666; margin: 0.5rem 0;">${block.data.description}</p>`;
+                            }
+                            html += `</div>`;
+                        }
+                        break;
+                    case 'divider':
+                        html += `<hr style="margin: 2rem 0; border: none; border-top: 2px solid #e5e5e5;">`;
+                        break;
+                }
+            });
+            
+            return html;
         }
         
         function moveBlock(id, dir) {

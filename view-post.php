@@ -167,8 +167,126 @@ $page_title = htmlspecialchars($post['title']) . " - Yucca Club";
                 $content_raw = $post['content'] ?? '';
                 $contentData = json_decode($content_raw, true);
                 
-                // New rich format with intro and sections
-                if (is_array($contentData) && (isset($contentData['intro']) || isset($contentData['sections']))) {
+                // Rich builder format (array of blocks)
+                if (is_array($contentData) && isset($contentData[0]['type'])) {
+                    $rendered = true;
+                    
+                    foreach ($contentData as $block) {
+                        $type = $block['type'] ?? '';
+                        $data = $block['data'] ?? [];
+                        
+                        switch($type) {
+                            case 'heading':
+                                $level = $data['level'] ?? 1;
+                                $text = $data['text'] ?? '';
+                                if ($text) {
+                                    echo "<h{$level} style=\"font-size:" . ($level == 1 ? '2rem' : '1.5rem') . "; font-weight: bold; margin: 1.5rem 0 1rem 0; color: #333;\">" . htmlspecialchars($text) . "</h{$level}>";
+                                }
+                                break;
+                                
+                            case 'subheading':
+                                $text = $data['text'] ?? '';
+                                if ($text) {
+                                    echo "<h3 style=\"font-size: 1.25rem; font-weight: 600; margin: 1rem 0 0.5rem 0; color: #555;\">" . htmlspecialchars($text) . "</h3>";
+                                }
+                                break;
+                                
+                            case 'paragraph':
+                                $text = $data['text'] ?? '';
+                                if ($text) {
+                                    echo "<p style=\"margin: 1rem 0; line-height: 1.6;\">" . nl2br(htmlspecialchars($text)) . "</p>";
+                                }
+                                break;
+                                
+                            case 'image':
+                                $url = $data['url'] ?? '';
+                                $alt = $data['alt'] ?? '';
+                                $caption = $data['caption'] ?? '';
+                                if ($url) {
+                                    echo "<div style=\"margin: 1.5rem 0; text-align: center;\">";
+                                    echo "<img src=\"" . htmlspecialchars($url) . "\" alt=\"" . htmlspecialchars($alt) . "\" style=\"max-width: 100%; height: auto; border-radius: 8px;\">";
+                                    if ($caption) {
+                                        echo "<p style=\"font-style: italic; color: #666; margin-top: 0.5rem; font-size: 0.9rem;\">" . htmlspecialchars($caption) . "</p>";
+                                    }
+                                    echo "</div>";
+                                }
+                                break;
+                                
+                            case 'gallery':
+                                $images = $data['images'] ?? [];
+                                if (!empty($images)) {
+                                    echo "<div style=\"display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1.5rem 0;\">";
+                                    foreach ($images as $image) {
+                                        if (!empty($image['url'])) {
+                                            echo "<div style=\"text-align: center;\">";
+                                            echo "<img src=\"" . htmlspecialchars($image['url']) . "\" alt=\"" . htmlspecialchars($image['alt'] ?? '') . "\" style=\"width: 100%; height: auto; border-radius: 8px;\">";
+                                            if (!empty($image['caption'])) {
+                                                echo "<p style=\"font-size: 0.9rem; color: #666; margin-top: 0.5rem;\">" . htmlspecialchars($image['caption']) . "</p>";
+                                            }
+                                            echo "</div>";
+                                        }
+                                    }
+                                    echo "</div>";
+                                }
+                                break;
+                                
+                            case 'blockquote':
+                                $text = $data['text'] ?? '';
+                                if ($text) {
+                                    echo "<blockquote style=\"border-left: 4px solid var(--yucca-yellow); margin: 1.5rem 0; padding: 1rem 1.5rem; background: #f8f9fa; font-style: italic; color: #555;\">" . htmlspecialchars($text) . "</blockquote>";
+                                }
+                                break;
+                                
+                            case 'list':
+                                $items = $data['items'] ?? [];
+                                if (!empty($items)) {
+                                    echo "<ul style=\"margin: 1rem 0; padding-left: 2rem;\">";
+                                    foreach ($items as $item) {
+                                        echo "<li style=\"margin: 0.5rem 0; line-height: 1.5;\">" . htmlspecialchars($item) . "</li>";
+                                    }
+                                    echo "</ul>";
+                                }
+                                break;
+                                
+                            case 'numbered-list':
+                                $items = $data['items'] ?? [];
+                                if (!empty($items)) {
+                                    echo "<ol style=\"margin: 1rem 0; padding-left: 2rem;\">";
+                                    foreach ($items as $item) {
+                                        echo "<li style=\"margin: 0.5rem 0; line-height: 1.5;\">" . htmlspecialchars($item) . "</li>";
+                                    }
+                                    echo "</ol>";
+                                }
+                                break;
+                                
+                            case 'video':
+                                $url = $data['url'] ?? '';
+                                $title = $data['title'] ?? '';
+                                $description = $data['description'] ?? '';
+                                if ($url) {
+                                    echo "<div style=\"margin: 1.5rem 0; text-align: center;\">";
+                                    echo "<div style=\"position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000;\">";
+                                    echo "<iframe src=\"" . htmlspecialchars($url) . "\" style=\"position: absolute; top: 0; left: 0; width: 100%; height: 100%;\" frameborder=\"0\" allowfullscreen></iframe>";
+                                    echo "</div>";
+                                    if ($title) {
+                                        echo "<h3 style=\"margin: 0.5rem 0; color: #333;\">" . htmlspecialchars($title) . "</h3>";
+                                    }
+                                    if ($description) {
+                                        echo "<p style=\"color: #666; margin: 0.5rem 0;\">" . htmlspecialchars($description) . "</p>";
+                                    }
+                                    echo "</div>";
+                                }
+                                break;
+                                
+                            case 'divider':
+                                echo "<hr style=\"margin: 2rem 0; border: none; border-top: 2px solid #e5e5e5;\">";
+                                break;
+                        }
+                    }
+                }
+                
+                // Legacy format with intro and sections
+                elseif (is_array($contentData) && (isset($contentData['intro']) || isset($contentData['sections']))) {
                     $rendered = true;
                     
                     // Render intro if exists
