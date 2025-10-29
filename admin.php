@@ -726,13 +726,6 @@ try {
             border-left: 4px solid #20c997;
         }
         
-        .block-item[data-type="callout"] {
-            border-left: 4px solid #ffc107;
-        }
-        
-        .block-item[data-type="code"] {
-            border-left: 4px solid #dc3545;
-        }
         
         .block-item[data-type="video"] {
             border-left: 4px solid #17a2b8;
@@ -1174,7 +1167,7 @@ try {
                             Rich builder: off
                         </span>
                         <div style="margin-left: auto; display: flex; gap: 0.5rem;">
-                            <button type="button" class="btn btn-outline btn-sm" onclick="loadTemplate()" id="template-btn" style="display: none;">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="loadTemplate()" id="template-btn">
                                 <i class="fas fa-file-import"></i> Load Template
                             </button>
                             <button type="button" class="btn btn-outline btn-sm" onclick="previewContent()" id="preview-btn" style="display: none;">
@@ -1231,12 +1224,6 @@ try {
                                 <div class="toolbar-buttons">
                                     <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('divider')" title="Add Divider">
                                         <i class="fas fa-minus"></i> Divider
-                                    </button>
-                                    <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('callout')" title="Add Callout Box">
-                                        <i class="fas fa-exclamation-circle"></i> Callout
-                                    </button>
-                                    <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('code')" title="Add Code Block">
-                                        <i class="fas fa-code"></i> Code
                                     </button>
                                     <button type="button" class="btn btn-outline btn-sm" onclick="addBlock('video')" title="Add Video">
                                         <i class="fas fa-video"></i> Video
@@ -1899,9 +1886,14 @@ try {
             }
         }
 
-        // Rich Builder functions
-        let builderEnabled = false;
-        let blocks = [];
+        // Generate UUID function for cross-browser compatibility
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
 
         function toggleBuilder() {
             builderEnabled = !builderEnabled;
@@ -1909,13 +1901,11 @@ try {
             const status = document.getElementById('builder-status');
             const previewBtn = document.getElementById('preview-btn');
             const exportBtn = document.getElementById('export-btn');
-            const templateBtn = document.getElementById('template-btn');
             
             builder.style.display = builderEnabled ? 'block' : 'none';
             status.textContent = `Rich builder: ${builderEnabled ? 'on' : 'off'}`;
             previewBtn.style.display = builderEnabled ? 'inline-flex' : 'none';
             exportBtn.style.display = builderEnabled ? 'inline-flex' : 'none';
-            templateBtn.style.display = builderEnabled ? 'inline-flex' : 'none';
             
             if (builderEnabled && blocks.length === 0) {
                 try {
@@ -1954,31 +1944,31 @@ try {
                 const trimmed = line.trim();
                 if (trimmed.startsWith('# ')) {
                     blocks.push({
-                        id: crypto.randomUUID(),
+                        id: generateUUID(),
                         type: 'heading',
                         data: { text: trimmed.substring(2), level: 1 }
                     });
                 } else if (trimmed.startsWith('## ')) {
                     blocks.push({
-                        id: crypto.randomUUID(),
+                        id: generateUUID(),
                         type: 'subheading',
                         data: { text: trimmed.substring(3), level: 2 }
                     });
                 } else if (trimmed.startsWith('> ')) {
                     blocks.push({
-                        id: crypto.randomUUID(),
+                        id: generateUUID(),
                         type: 'blockquote',
                         data: { text: trimmed.substring(2) }
                     });
                 } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
                     blocks.push({
-                        id: crypto.randomUUID(),
+                        id: generateUUID(),
                         type: 'list',
                         data: { items: [trimmed.substring(2)] }
                     });
                 } else if (trimmed.length > 0) {
                     blocks.push({
-                        id: crypto.randomUUID(),
+                        id: generateUUID(),
                         type: 'paragraph',
                         data: { text: trimmed }
                     });
@@ -1990,7 +1980,7 @@ try {
 
         function addBlock(type) {
             const newBlock = {
-                id: crypto.randomUUID(),
+                id: generateUUID(),
                 type,
                 data: {}
             };
@@ -2021,12 +2011,6 @@ try {
                 case 'gallery':
                     newBlock.data = { images: [{ url: '', alt: '', caption: '' }] };
                     break;
-                case 'callout':
-                    newBlock.data = { text: 'Important information goes here...', type: 'info' };
-                    break;
-                case 'code':
-                    newBlock.data = { code: '// Your code here...', language: 'javascript' };
-                    break;
                 case 'video':
                     newBlock.data = { url: '', title: 'Video Title', description: '' };
                     break;
@@ -2050,7 +2034,7 @@ try {
             if (blocks.length === 0) return;
             const lastBlock = blocks[blocks.length - 1];
             const duplicatedBlock = {
-                id: crypto.randomUUID(),
+                id: generateUUID(),
                 type: lastBlock.type,
                 data: JSON.parse(JSON.stringify(lastBlock.data)) // Deep copy
             };
@@ -2093,6 +2077,20 @@ try {
                 return;
             }
             
+            // Enable rich builder if not already enabled
+            if (!builderEnabled) {
+                builderEnabled = true;
+                const builder = document.getElementById('rich-builder');
+                const status = document.getElementById('builder-status');
+                const previewBtn = document.getElementById('preview-btn');
+                const exportBtn = document.getElementById('export-btn');
+                
+                builder.style.display = 'block';
+                status.textContent = 'Rich builder: on';
+                previewBtn.style.display = 'inline-flex';
+                exportBtn.style.display = 'inline-flex';
+            }
+            
             // Clear existing blocks
             blocks = [];
             
@@ -2100,33 +2098,33 @@ try {
             const templateBlocks = [
                 // Main heading
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'heading',
                     data: { text: 'Welcome to Yucca Club', level: 1 }
                 },
                 
                 // Description paragraph
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'paragraph',
                     data: { text: 'Yucca Club was built to tell the stories that live here. From Las Cruces to El Paso, Alamogordo, Cloudcroft, Silver City, Ruidoso, Juárez, Tucson, Phoenix, Hatch, Deming, Mesilla, and everywhere in between.\n\nThis is a space for real people, local stories, and honest perspectives.' }
                 },
                 
                 // What You'll Find section
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'heading',
                     data: { text: "What You'll Find", level: 2 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'Local Guides', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'list',
                     data: { 
                         items: [
@@ -2139,13 +2137,13 @@ try {
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'Community Features', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'list',
                     data: { 
                         items: [
@@ -2158,13 +2156,13 @@ try {
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'Local Happenings', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'list',
                     data: { 
                         items: [
@@ -2177,13 +2175,13 @@ try {
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'Southwest Culture', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'list',
                     data: { 
                         items: [
@@ -2197,7 +2195,7 @@ try {
                 
                 // Image
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'image',
                     data: { 
                         url: 'https://nicholasxdavis.github.io/BN-db1/img/southern.png',
@@ -2208,26 +2206,26 @@ try {
                 
                 // Why We're Doing This section
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'heading',
                     data: { text: "Why We're Doing This", level: 2 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'paragraph',
                     data: { text: 'Too often, this region gets overlooked. People pass through without seeing the history, the flavor, and the work that goes into keeping it alive. We\'re here to change that.\n\nYucca Club is about connection — showing what\'s growing, what\'s worth visiting, and who\'s making things happen across the desert.' }
                 },
                 
                 // Our Mission section
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'heading',
                     data: { text: 'Our Mission', level: 2 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'list',
                     data: { 
                         items: [
@@ -2241,13 +2239,13 @@ try {
                 
                 // Our Values section
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'heading',
                     data: { text: 'Our Values', level: 2 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'list',
                     data: { 
                         items: [
@@ -2261,13 +2259,13 @@ try {
                 
                 // The Southwest We Cover section
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'heading',
                     data: { text: 'The Southwest We Cover', level: 2 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'image',
                     data: { 
                         url: 'https://nicholasxdavis.github.io/BN-db1/img/southwest.png',
@@ -2277,13 +2275,13 @@ try {
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'New Mexico', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'list',
                     data: { 
                         items: [
@@ -2300,13 +2298,13 @@ try {
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'Texas', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'list',
                     data: { 
                         items: [
@@ -2317,13 +2315,13 @@ try {
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'Mexico', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'list',
                     data: { 
                         items: [
@@ -2333,13 +2331,13 @@ try {
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'Arizona', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'list',
                     data: { 
                         items: [
@@ -2351,75 +2349,75 @@ try {
                 
                 // What Makes Us Different section
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'heading',
                     data: { text: 'What Makes Us Different', level: 2 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'Hyperlocal Focus', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'paragraph',
                     data: { text: 'We\'re not trying to be everything to everyone. We\'re focused on the Southwest — the Borderland region where New Mexico meets Texas and Mexico.' }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'Community-Driven', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'paragraph',
                     data: { text: 'Our content comes from locals, for locals. Real people, real businesses, real experiences.' }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'Modern Platform', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'paragraph',
                     data: { text: 'A clean, mobile-first design that looks great on your phone or desktop.' }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'Quality Curation', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'paragraph',
                     data: { text: 'We don\'t just post everything — we curate content that\'s actually worth your time.' }
                 },
                 
                 // Blockquote
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'blockquote',
                     data: { text: 'Launching January 1, 2026 — We\'re just getting started. New stories, local guides, and community features will start rolling out soon.' }
                 },
                 
                 // What's Coming section
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'heading',
                     data: { text: 'What\'s Coming', level: 2 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'list',
                     data: { 
                         items: [
@@ -2435,75 +2433,75 @@ try {
                 
                 // How to Get Involved section
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'heading',
                     data: { text: 'How to Get Involved', level: 2 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'Stay Updated', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'paragraph',
                     data: { text: 'Sign up for our newsletter to get the latest stories and guides delivered to your inbox.' }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'Share Your Story', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'paragraph',
                     data: { text: 'Have a story to tell or a favorite spot to recommend? We want to hear from you.' }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'Support Local', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'paragraph',
                     data: { text: 'Use our guides to discover and support local businesses, artists, and organizations.' }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'subheading',
                     data: { text: 'Partner With Us', level: 3 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'paragraph',
                     data: { text: 'If you\'re a local business, artist, or organization — let\'s work together to tell your story.' }
                 },
                 
                 // The Southwest Awaits section
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'heading',
                     data: { text: 'The Southwest Awaits', level: 2 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'paragraph',
                     data: { text: 'This is your insider\'s guide to the real Southwest — not the tourist version, not the Instagram version, but the one locals know and love.\n\nFrom the Organ Mountains to White Sands, from Las Cruces to El Paso, from the smallest towns to the biggest cities — we\'re here to show what makes this place special.' }
                 },
                 
                 // Final image
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'image',
                     data: { 
                         url: 'https://nicholasxdavis.github.io/BN-db1/img/yuccaclub.png',
@@ -2514,20 +2512,20 @@ try {
                 
                 // Final Message section
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'heading',
                     data: { text: 'Welcome to Yucca Club. Welcome home.', level: 2 }
                 },
                 
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'paragraph',
                     data: { text: 'Crafted with love in Las Cruces, New Mexico.' }
                 },
                 
                 // Final blockquote
                 {
-                    id: crypto.randomUUID(),
+                    id: generateUUID(),
                     type: 'blockquote',
                     data: { text: 'Yucca Club — Where the Southwest comes alive through authentic stories, local guides, and community connection.' }
                 }
@@ -2582,12 +2580,6 @@ try {
                             html += `<img src="${block.data.url}" alt="${block.data.alt}">`;
                             if (block.data.caption) html += `<p><em>${block.data.caption}</em></p>`;
                         }
-                        break;
-                    case 'callout':
-                        html += `<div style="background:#f0f8ff;border:1px solid #007bff;padding:15px;border-radius:5px;margin:10px 0;">${block.data.text}</div>`;
-                        break;
-                    case 'code':
-                        html += `<pre><code>${block.data.code}</code></pre>`;
                         break;
                     case 'divider':
                         html += '<hr>';
@@ -2826,36 +2818,6 @@ try {
                         content.appendChild(addItemBtn);
                         break;
                         
-                    case 'callout':
-                        const calloutTextarea = document.createElement('textarea');
-                        calloutTextarea.value = block.data.text || '';
-                        calloutTextarea.oninput = (e) => {
-                            block.data.text = e.target.value;
-                            updateContent();
-                        };
-                        calloutTextarea.style.width = '100%';
-                        calloutTextarea.style.minHeight = '100px';
-                        calloutTextarea.style.padding = '0.75rem';
-                        calloutTextarea.style.borderLeft = '4px solid #ffc107';
-                        calloutTextarea.style.backgroundColor = '#fff3cd';
-                        content.appendChild(calloutTextarea);
-                        break;
-                        
-                    case 'code':
-                        const codeTextarea = document.createElement('textarea');
-                        codeTextarea.value = block.data.code || '';
-                        codeTextarea.oninput = (e) => {
-                            block.data.code = e.target.value;
-                            updateContent();
-                        };
-                        codeTextarea.style.width = '100%';
-                        codeTextarea.style.minHeight = '150px';
-                        codeTextarea.style.padding = '0.75rem';
-                        codeTextarea.style.fontFamily = 'monospace';
-                        codeTextarea.style.backgroundColor = '#f8f9fa';
-                        codeTextarea.style.border = '1px solid #e9ecef';
-                        content.appendChild(codeTextarea);
-                        break;
                         
                     case 'video':
                         const videoUrlInput = document.createElement('input');

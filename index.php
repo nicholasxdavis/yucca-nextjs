@@ -599,30 +599,6 @@ main {
     </div>
     
     <main>
-        <!-- Hero Section with Local SEO Content -->
-        <section class="hero-section" style="background: linear-gradient(135deg, var(--desert-sand) 0%, var(--off-white) 100%); padding: 4rem 0; text-align: center; margin-bottom: 3rem;">
-            <div class="container">
-                <h1 style="font-size: 3rem; margin-bottom: 1rem; color: var(--lobo-gray); font-weight: 700;">
-                    Discover Las Cruces & El Paso
-                </h1>
-                <p style="font-size: 1.3rem; max-width: 800px; margin: 0 auto 2rem; opacity: 0.8; line-height: 1.6;">
-                    Your insider's guide to Southern New Mexico and West Texas. From the Organ Mountains to White Sands, 
-                    explore authentic stories, local events, and hidden gems in the Borderland region.
-                </p>
-                <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin-top: 2rem;">
-                    <span style="background: var(--yucca-yellow); color: var(--lobo-gray); padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600;">
-                        Las Cruces, NM
-                    </span>
-                    <span style="background: var(--yucca-yellow); color: var(--lobo-gray); padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600;">
-                        El Paso, TX
-                    </span>
-                    <span style="background: var(--yucca-yellow); color: var(--lobo-gray); padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600;">
-                        Borderland Region
-                    </span>
-                </div>
-            </div>
-        </section>
-        
         <div id="shimmer-loader">
             <div class="container">
                  <div class="bento-grid">
