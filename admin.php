@@ -804,7 +804,7 @@ try {
 
             <nav class="nav-section">
                 <div class="nav-section-title">Tools</div>
-                <div class="nav-item" onclick="testAPIs()">
+                <div class="nav-item" onclick="showSection('database')">
                     <i class="fas fa-flask"></i>
                     <span>Test APIs</span>
                 </div>
@@ -1540,8 +1540,8 @@ try {
                 // Setup real-time validation
                 setupRealTimeValidation();
                 
-                // Show initial validation
-                setTimeout(showValidationResults, 100);
+                // Show initial validation after a delay to allow form fields to be populated
+                setTimeout(showValidationResults, 500);
             } catch (error) {
                 alert('Error opening editor: ' + error.message);
             }
@@ -3327,9 +3327,12 @@ try {
             // Save blocks as JSON for storage
             document.getElementById('content-body').value = JSON.stringify(blocks, null, 2);
             
-            // Also generate HTML preview for display
-            const htmlContent = generatePreviewHTML();
-            document.getElementById('content-preview').innerHTML = htmlContent;
+            // Also generate HTML preview for display if element exists
+            const previewElement = document.getElementById('content-preview');
+            if (previewElement) {
+                const htmlContent = generatePreviewHTML();
+                previewElement.innerHTML = htmlContent;
+            }
         }
         
         // Generate HTML from blocks for display
