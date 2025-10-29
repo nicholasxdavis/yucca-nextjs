@@ -1344,7 +1344,9 @@ try {
         
         async function loadStories() {
             try {
-                const response = await fetch('api/content_api.php?type=stories&action=list');
+                const response = await fetch('api/content_api.php?type=stories&action=list', {
+                    credentials: 'same-origin'
+                });
                 const data = await response.json();
                 
                 const container = document.getElementById('stories-list');
@@ -1376,7 +1378,9 @@ try {
 
         async function loadGuides() {
             try {
-                const response = await fetch('api/content_api.php?type=guides&action=list');
+                const response = await fetch('api/content_api.php?type=guides&action=list', {
+                    credentials: 'same-origin'
+                });
                 const data = await response.json();
                 
                 const container = document.getElementById('guides-list');
@@ -1408,7 +1412,9 @@ try {
 
         async function loadReviewPosts() {
             try {
-                const response = await fetch('api/user_posts_api.php?action=list');
+                const response = await fetch('api/user_posts_api.php?action=list', {
+                    credentials: 'same-origin'
+                });
                 const data = await response.json();
                 
                 const container = document.getElementById('review-posts-list');
@@ -1450,7 +1456,9 @@ try {
 
         async function loadContacts() {
             try {
-                const response = await fetch('api/contacts_api.php');
+                const response = await fetch('api/contacts_api.php', {
+                    credentials: 'same-origin'
+                });
                 const data = await response.json();
                 
                 const container = document.getElementById('contacts-list');
@@ -1492,7 +1500,9 @@ try {
                 
                 if (id) {
                     document.getElementById('editor-title').textContent = 'Edit ' + type;
-                    const response = await fetch(`api/content_api.php?type=${type}&action=get&id=${id}`);
+                    const response = await fetch(`api/content_api.php?type=${type}&action=get&id=${id}`, {
+                        credentials: 'same-origin'
+                    });
                     const data = await response.json();
                     
                     if (data.success) {
@@ -1535,7 +1545,8 @@ try {
                 
                 const response = await fetch(`api/content_api.php?type=${type}&action=delete`, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    credentials: 'same-origin'
                 });
                 
                 const data = await response.json();
@@ -1559,7 +1570,8 @@ try {
                 
                 await fetch('api/user_api.php', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    credentials: 'same-origin'
                 });
                 
                 alert('User role updated!');
@@ -1576,7 +1588,8 @@ try {
             
             await fetch('api/contacts_api.php', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'same-origin'
             });
         }
 
@@ -1589,9 +1602,9 @@ try {
                 formData.append('status', 'published');
                 
                 const response = await fetch('api/user_posts_api.php?action=update_status', {
-                    method: 'POST',
-                    body: formData
-                });
+                method: 'POST',
+                body: formData
+            });
                 
                 const data = await response.json();
                 if (data.success) {
@@ -1615,7 +1628,8 @@ try {
                 
                 const response = await fetch('api/user_posts_api.php?action=update_status', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    credentials: 'same-origin'
                 });
                 
                 const data = await response.json();
@@ -1632,7 +1646,9 @@ try {
 
         async function viewPost(postId) {
             try {
-                const response = await fetch(`api/user_posts_api.php?action=get&id=${postId}`);
+                const response = await fetch(`api/user_posts_api.php?action=get&id=${postId}`, {
+                    credentials: 'same-origin'
+                });
                 const data = await response.json();
                 
                 if (data.success) {
@@ -1714,7 +1730,8 @@ try {
                 
                 const response = await fetch(`api/content_api.php?type=${type}&action=${action}`, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    credentials: 'same-origin'
                 });
                 
                 const data = await response.json();
@@ -1756,7 +1773,8 @@ try {
             
             const response = await fetch('api/user_api.php', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'same-origin'
             });
             
             const data = await response.json();
@@ -1778,7 +1796,8 @@ try {
             
             const response = await fetch('api/user_api.php', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                credentials: 'same-origin'
             });
             
             const data = await response.json();
@@ -1826,7 +1845,7 @@ try {
             
             try {
                 const tests = [
-                    { name: 'Content API', url: 'api/content_api.php?type=stories&action=list' },
+                    { name: 'Content API', url: 'api/content_api.php?type=stories&action=list', credentials: true },
                     { name: 'Contacts API', url: 'api/contacts_api.php' }
                 ];
                 
@@ -1835,7 +1854,11 @@ try {
                 
                 for (const test of tests) {
                     try {
-                        const response = await fetch(test.url);
+                        const options = { method: 'GET' };
+                        if (test.credentials) {
+                            options.credentials = 'same-origin';
+                        }
+                        const response = await fetch(test.url, options);
                         html += `<p style="color: green; margin: 0.5rem 0;">✓ ${test.name}</p>`;
                     } catch (error) {
                         html += `<p style="color: red; margin: 0.5rem 0;">✗ ${test.name}</p>`;
@@ -1854,7 +1877,8 @@ try {
                 const response = await fetch('api/maintenance.php', {
                     method: 'POST',
                     body: JSON.stringify({ action }),
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin'
                 });
                 
                 const data = await response.json();
